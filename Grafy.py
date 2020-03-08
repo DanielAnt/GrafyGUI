@@ -3,11 +3,18 @@ class Graf:
     def __init__(self, name="Graf"):
         self.name = name
         self.nodes = {}
+        self.cordsX = {}
+        self.cordsY = {}
 
 
-    def add_node(self, node):
+    def add_node(self, node,cordX,cordY):
         self.nodes[node]=[]
-
+        if node not in self.cordsX:
+            self.cordsX[node]=[]
+        if node not in self.cordsY:
+            self.cordsY[node]=[]
+        self.cordsX[node].append(cordX)
+        self.cordsY[node].append(cordY)
 
     def add_edge_undirected(self, node1, node2):
         if node2 not in self.nodes:
@@ -39,9 +46,12 @@ class Graf:
 ## TESTS
 
 #graf=Graf()
-#graf.add_node('B')
-#graf.add_node('A')
-#graf.add_node('C')
+#graf.add_node('B',0,0)
+#graf.add_node('A',150,300)
+#graf.add_node('C',100,200)
+#graf.print_graph()
+
+
 #graf.add_edge_undirected('A','B')
 #graf.add_edge_undirected('A','R')
 #graf.add_edge_undirected('B','B')
