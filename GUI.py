@@ -18,7 +18,7 @@ class main:
         self.tools(self.switch_variable)
         self.c.bind('<ButtonPress-1>',self.Cords)
         self.c.bind('<ButtonRelease-1>',self.reset)
-        #self.c.bind('<ButtonPress-2>',self.unselect)
+
 
 
     def drawWidgets(self):
@@ -29,23 +29,23 @@ class main:
         self.draw_Entry= Entry(self.buttons,width=5,justify=RIGHT)
         self.select_button = Radiobutton(self.buttons, text="Select",variable=self.switch_variable,indicatoron=False, value="select", height=1)
         self.removeNode_button = Button(self.buttons, text="Remove Node", command=self.remove_node, height=1)
-        #self.removeNode_Entry= Entry(self.buttons,width=5,justify=RIGHT)
         self.unEdge_button = Radiobutton(self.buttons, text="UnEdge",variable=self.switch_variable,indicatoron=False, value="drawUndirected", height=1)
+        self.directedEdge_button = Radiobutton(self.buttons, text="directedEdge",variable=self.switch_variable,indicatoron=False, value="drawDirected", height=1)
         self.buttonPrint= Button(self.buttons,text = "Print", command= self.print_graph, height=1)
 
 
         self.draw_Entry.pack(side="left",fill=Y, expand=True)
         self.draw_button.pack(side="left",fill=Y, expand=True)
-        #self.removeNode_Entry.pack(side="left",fill=Y, expand=True)
         self.removeNode_button.pack(side="left",fill=Y, expand=True)
         self.unEdge_button.pack(side="left",fill=Y, expand=True)
+        self.directedEdge_button.pack(side="left",fill=Y, expand=True)
         self.select_button.pack(side="left",fill=Y, expand=True)
         self.buttonPrint.pack(side="left")
         self.controls.pack(side=TOP,fill=X, expand=False)
 
+
         self.print=Canvas(self.master,height=400,width=100, bg=self.color_bg)
         self.print.pack(side=LEFT,fill=Y,expand=False)
-
 
 
         self.c=Canvas(self.master,width=500,height=400,bg=self.color_bg,)
@@ -54,6 +54,9 @@ class main:
 
         self.menu = Menu(self.master)
         self.master.config(menu=self.menu)
+        self.graphmenu= Menu(self.menu)
+        self.menu.add_cascade(label='Graph', menu=self.graphmenu)
+        self.graphmenu.add_command(label='Add Graph',command=self.graph_add)
         self.optionmenu = Menu(self.menu)
         self.menu.add_cascade(label='Options',menu=self.optionmenu)
         self.optionmenu.add_command(label='Clear',command=self.clear_canvas)
@@ -69,7 +72,6 @@ class main:
         self.c.delete(ALL)
         self.print.delete(ALL)
 
-
     def tools(self,task):
         self.tool=task
 
@@ -84,8 +86,6 @@ class main:
                 self.text+=keys
                 self.text+="\n"
         self.print.create_text(25,200,fill="darkblue",font="Times 10 italic bold", text=self.text)
-
-
 
     def Cords(self,e):
         if self.tool!=self.switch_variable.get():
@@ -116,7 +116,6 @@ class main:
                     else:
                         messagebox.showerror("Error", "You can't add more then one node with the same name")
 
-
         if self.tool=="drawUndirected":
             self.new_x=e.x
             self.new_y=e.y
@@ -133,6 +132,23 @@ class main:
                                                     self.c.create_line(graf.cordsX[source],graf.cordsY[source],graf.cordsX[keys],graf.cordsY[keys],width=1,fill="red",smooth=True)
                                                     #self.c.create_line(graf.cordsX[source],graf.cordsY[source],graf.cordsX[keys],graf.cordsY[keys],width=1,fill="red",arrow='last',capstyle=ROUND,smooth=True)
                                                     graf.add_edge_undirected(source,keys)
+
+        if self.tool=="drawDirected":
+            self.new_x=e.x
+            self.new_y=e.y
+            for source in graf.cordsX:
+                for i in range(self.old_x-10,self.old_x+10):
+                    if i in graf.cordsX[source]:
+                        for k in range(self.old_y-20,self.old_y+20):
+                            if k in graf.cordsY[source]:
+                                for keys in graf.cordsX:
+                                    for j in range(self.new_x-10,self.new_x+10):
+                                        if j in graf.cordsX[keys]:
+                                            for l in range(self.new_y-10,self.new_y+10):
+                                                if l in graf.cordsY[keys]:
+                                                    #self.c.create_line(graf.cordsX[source],graf.cordsY[source],graf.cordsX[keys],graf.cordsY[keys],width=1,fill="red",smooth=True)
+                                                    self.c.create_line(graf.return_X(source),graf.return_Y(source),graf.return_X(keys),graf.return_Y(keys),width=1,fill="red",arrow='last',capstyle=ROUND,smooth=True)
+                                                    graf.add_edge_directed(source,keys)
 
         if self.tool=="select":
             self.new_x=e.x
@@ -153,6 +169,7 @@ class main:
                                     self.node=None
                                     self.selected=False
                                     break;
+
     def remove_node(self):
         if self.selected==True:
             self.remove=True
@@ -172,22 +189,25 @@ class main:
             graf.cordsY=temp_graf.cordsY
             self.clear_canvas_remove_node()
             for source in graf.nodes:
-                print("source",source)
                 self.c.create_image(graf.return_X(source),graf.return_Y(source), image=photo)
                 self.c.create_text(graf.return_X(source)+10,graf.return_Y(source)-15,fill="darkblue",font="Times 10 italic bold", text=source)
+            for source in graf.nodes:
                 for keys in graf.nodes[source]:
-                    print("keys", keys)
-                    self.c.create_line(graf.cordsX[source],graf.cordsY[source],graf.cordsX[keys],graf.cordsY[keys],width=1,fill="red",smooth=True)
+                    self.c.create_line(graf.cordsX[source],graf.cordsY[source],graf.cordsX[keys],graf.cordsY[keys], arrow='last',width=1,fill="red",smooth=True)
 
             temp_graf=None
             self.remove=False
             self.node=None
             self.selected=False
 
+    def graph_add(self):
+        self.graph_add_window = Tk()
+        self.graph_add_window.title('Add graph')
+        self.graph_add_window.mainloop()
 
 
 
-        #def unselect(self,e):
+
 
 
 
