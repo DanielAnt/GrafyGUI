@@ -24,15 +24,23 @@ class main:
         self.buttons=Frame(self.controls,padx=3,pady=3, bd=2,relief="sunken")
         self.buttons.pack(side=LEFT)
         self.draw_button = Radiobutton(self.buttons, text="AddNode",variable=self.switch_variable,indicatoron=False, value="draw", height=1)
-        self.letter= Entry(self.buttons,width=5,justify=RIGHT)
+        self.draw_Entry= Entry(self.buttons,width=5,justify=RIGHT)
+        self.select_button = Radiobutton(self.buttons, text="Select",variable=self.switch_variable,indicatoron=False, value="select", height=1)
+        #self.removeNode_button = Button(self.buttons, text="Remove Node", height=1)
+        #self.removeNode_Entry= Entry(self.buttons,width=5,justify=RIGHT)
         self.unEdge_button = Radiobutton(self.buttons, text="UnEdge",variable=self.switch_variable,indicatoron=False, value="drawUndirected", height=1)
-        self.buttonPrint= Button(self.buttons,text = "Print", command= graf.print_graph, height=1)
+        self.buttonPrint= Button(self.buttons,text = "Print", command= self.print_graph, height=1)
+        self.draw_Entry.pack(side="left",fill=Y, expand=True)
         self.draw_button.pack(side="left",fill=Y, expand=True)
-        self.letter.pack(side="left",fill=Y, expand=True)
+        #self.removeNode_Entry.pack(side="left",fill=Y, expand=True)
+        #self.removeNode_button.pack(side="left",fill=Y, expand=True)
         self.unEdge_button.pack(side="left",fill=Y, expand=True)
+        self.select_button.pack(side="left",fill=Y, expand=True)
         self.buttonPrint.pack(side="left")
-
         self.controls.pack(side=TOP,fill=X, expand=False)
+
+        self.print=Canvas(self.master,height=400,width=100, bg=self.color_bg)
+        self.print.pack(side=LEFT,fill=Y,expand=False)
 
 
 
@@ -40,12 +48,34 @@ class main:
         self.c.pack(fill=BOTH,expand=True)
 
 
+        self.menu = Menu(self.master)
+        self.master.config(menu=self.menu)
+        self.optionmenu = Menu(self.menu)
+        self.menu.add_cascade(label='Options',menu=self.optionmenu)
+        self.optionmenu.add_command(label='Clear',command=self.clear_canvas)
+        self.optionmenu.add_command(label='Exit',command=self.master.destroy)
+
+
+    def clear_canvas(self):
+        self.c.delete(ALL)
+        graf.clear_graph()
+
     def tools(self,task):
         self.tool=task
 
+    def print_graph(self):
+        self.print.delete(ALL)
+        self.text=graf.name
+        self.text+="\n"
+        for source in graf.nodes:
+            self.text+=source
+            self.text+=":\n"
+            for keys in graf.nodes[source]:
+                self.text+=keys
+                self.text+="\n"
 
-        #print(self)
-        #self.buttonAddPoint.relief(sunked)
+        #self.label= Label(self.print,font="Times 10 italic bold", text=self.text, width=15)
+        self.print.create_text(25,200,fill="darkblue",font="Times 10 italic bold", text=self.text)
 
 
 
@@ -56,19 +86,22 @@ class main:
         self.old_y= e.y
 
     def reset(self,e):
+
         if self.tool=="draw":
             if e.x==self.old_x and e.y==self.old_y:
-                if not self.letter.get():
+                if not self.draw_Entry.get():
                     print("There is no letter")
                 else:
-                    if self.letter.get() not in graf.nodes:
+                    if self.draw_Entry.get() not in graf.nodes:
                         self.new_x=round(e.x,-1)
                         self.new_y=round(e.y,-1)
-                        graf.add_node(self.letter.get(),self.new_x, self.new_y)
-                        self.c.create_line(self.new_x,self.new_y,self.new_x,self.new_y,width=10,fill="black",capstyle=ROUND,smooth=True)
-                        self.c.create_text(self.new_x+10,self.new_y-15,fill="darkblue",font="Times 10 italic bold", text=self.letter.get())
+                        graf.add_node(self.draw_Entry.get(),self.new_x, self.new_y)
+                        #self.c.create_line(self.new_x,self.new_y,self.new_x,self.new_y,width=10,fill="black",capstyle=ROUND,smooth=True)
+                        self.c.create_image(self.new_x,self.new_y, image=photo)
+                        self.c.create_text(self.new_x+10,self.new_y-15,fill="darkblue",font="Times 10 italic bold", text=self.draw_Entry.get())
                     else:
                         print("You can't add more then one node with the same name")
+
         if self.tool=="drawUndirected":
             self.new_x=e.x
             self.new_y=e.y
@@ -85,9 +118,21 @@ class main:
 
                                             for l in range(self.new_y-10,self.new_y+10):
                                                 if l in graf.cordsY[keys]:
-
                                                     self.c.create_line(graf.cordsX[source],graf.cordsY[source],graf.cordsX[keys],graf.cordsY[keys],width=1,fill="black",capstyle=ROUND,smooth=True)
                                                     graf.add_edge_undirected(source,keys)
+
+        if self.tool=="select":
+            self.new_x=e.x
+            self.new_y=e.y
+            for source in graf.cordsX:
+                for i in range(self.old_x-10,self.old_x+10):
+                    if i in graf.cordsX[source]:
+
+                        for k in range(self.old_y-20,self.old_y+20):
+                            if k in graf.cordsY[source]:
+                                self.c.create_image(graf.cordsX[source],graf.cordsY[source], image=selectedPhoto)
+
+
 
 
 
@@ -102,8 +147,8 @@ if __name__ == '__main__':
     root = Tk()
     image = Image.open("plusresized.jpg")
     photo = ImageTk.PhotoImage(image)
-    #print = Image.open("print2.png")
-    #printPhoto = ImageTk.PhotoImage(print)
+    selected = Image.open("plusselected.jpg")
+    selectedPhoto = ImageTk.PhotoImage(selected)
     main(root)
     root.title('Application')
 

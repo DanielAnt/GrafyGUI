@@ -33,12 +33,25 @@ class Graf:
             self.nodes[node1]=[]
         self.nodes[node1].append(node2)
 
+    def clear_graph(self):
+        self.__init__()
+
     def print_graph(self):
         print(self.name)
         for source in self.nodes:
             print(source,":")
             for keys in self.nodes[source]:
                 print(keys)
+
+
+#    def remove_Node(self,node):
+
+    #    self.nodes.pop(node, node)
+
+
+
+
+
 
 
 
@@ -49,6 +62,12 @@ class Graf:
 #graf.add_node('B',0,0)
 #graf.add_node('A',150,300)
 #graf.add_node('C',100,200)
+
+#graf.add_edge_undirected('A','B')
+#graf.add_edge_undirected('A','C')
+#graf.add_edge_undirected('B','A')
+#graf.remove_Node('B')
+
 #graf.print_graph()
 
 
