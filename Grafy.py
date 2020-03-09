@@ -38,11 +38,20 @@ class Graf:
 
     def print_graph(self):
         print(self.name)
-        for source in self.nodes:
+        for source in sorted(self.nodes):
             print(source,":")
             for keys in self.nodes[source]:
                 print(keys)
 
+    def return_X(self,node):
+        self.cordx=self.cordsX[node].pop()
+        self.cordsX[node].append(self.cordx)
+        return self.cordx
+
+    def return_Y(self,node):
+        self.cordy=self.cordsY[node].pop()
+        self.cordsY[node].append(self.cordy)
+        return self.cordy
 
 #    def remove_Node(self,node):
 
