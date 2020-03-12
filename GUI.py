@@ -98,7 +98,7 @@ class main:
             for keys in graf.nodes[source]:
                 self.text+=str(keys)
                 self.text+="\n"
-        self.print.create_text(50,200,fill="darkblue",font="Times 10 italic bold", text=self.text)
+        self.print.create_text(50,200,fill="darkblue",font="Times 10 italic bold", text=self.text) #prints graph on canvas
 
     def Cords(self,e):
         if self.tool!=self.switch_variable.get():

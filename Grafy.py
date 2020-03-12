@@ -74,12 +74,12 @@ class Graf:
     def return_X(self,node):
         self.cordx=self.cordsX[node].pop()
         self.cordsX[node].append(self.cordx)
-        return self.cordx # returns cordX
+        return self.cordx # returns cordX of node
 
     def return_Y(self,node):
         self.cordy=self.cordsY[node].pop()
         self.cordsY[node].append(self.cordy)
-        return self.cordy # retruns cordY
+        return self.cordy # retruns cordY of node
 
 
 
