@@ -3,85 +3,84 @@ class Graf:
     def __init__(self, name="Graf"):
         self.name = name
         self.nodes = {}
+        self.edge_wage={}
         self.adjacency_matrix={}
         self.cordsX = {}
         self.cordsY = {}
 
 
-    def add_node(self, node,cordX,cordY):
+    def add_node(self, node_1,cordX,cordY):
+        node=str(node_1)
         self.nodes[node]=[]
         if node not in self.cordsX:
             self.cordsX[node]=[]
         if node not in self.cordsY:
             self.cordsY[node]=[]
         self.cordsX[node].append(cordX)
-        self.cordsY[node].append(cordY)
+        self.cordsY[node].append(cordY) # addes node with cordx and cordy
 
-    def add_edge_undirected(self, node1, node2):
+    def add_edge_undirected(self, node_1, node_2,wage=1):
+        node1=str(node_1)
+        node2=str(node_2)
         if node2 not in self.nodes:
             self.nodes[node2]=[]
         if node1 not in self.nodes:
             self.nodes[node1]=[]
-        if node2 not in self.nodes[node1]:
-            self.nodes[node1].append(node2)
-        if node1 not in self.nodes[node2]:
-            self.nodes[node2].append(node1)
+        if node1+node2 not in self.nodes[node1]:
+            self.temp_node=node1
+            self.temp_node+=node2
+            self.nodes[node1].append(self.temp_node)
+            self.edge_wage[self.temp_node]=wage
+        if node2+node1 not in self.nodes[node2]:
+            self.temp_node=node2
+            self.temp_node+=node1
+            self.nodes[node2].append(self.temp_node)
+            self.edge_wage[self.temp_node]=wage  # addes undirected edge
 
-    def add_edge_directed(self, node1, node2):
+    def add_edge_directed(self, node1, node2,wage=1):
         if node2 not in self.nodes:
             self.nodes[node2]=[]
         if node1 not in self.nodes:
             self.nodes[node1]=[]
-        self.nodes[node1].append(node2)
+        self.temp=node1
+        self.temp+=node2
+        self.nodes[node1].append(self.temp)
+        self.edge_wage[self.temp]=wage # addes directed edge
 
-    def create_Adj_Matrix(self,node, matrix):
-        self.adjacency_matrix[node]=[]
-        self.adjacency_matrix[node].append(matrix)
+    def create_adj_matrix(self,index_1,keys):
+        index=str(index_1)
+        self.adjacency_matrix[index]=[]
+        self.adjacency_matrix[index].append(keys) #takes adj_matrix from GUI class and pass it to self.adjacency_matrix
 
-    def convert_matrix(self):
-        if self.adjacency_matrix:
-            for name in self.adjacency_matrix:
-                for keys in self.adjacency_matrix[name]:
-                    self.temp=0
-                    for numbers in keys:
-                        self.temp+=1
-                        if int(numbers)==1 and self.temp==1:
-                            self.add_edge_undirected(name,'A')
-                        if int(numbers)==1 and self.temp==2:
-                            self.add_edge_undirected(name,'B')
-                        if int(numbers)==1 and self.temp==3:
-                            self.add_edge_undirected(name,'C')
-                        if int(numbers)==1 and self.temp==4:
-                            self.add_edge_undirected(name,'D')
-                        if int(numbers)==1 and self.temp==5:
-                            self.add_edge_undirected(name,'E')
-                        if int(numbers)==1 and self.temp==6:
-                            self.add_edge_undirected(name,'F')
-        #else:
+    def convert_adj_matrix(self):
+        for index in self.adjacency_matrix:
+            for keys in self.adjacency_matrix[index]:
+                if int(keys)==1:
+                    self.add_edge_undirected(index[0],index[1]) #converts_matrix into graph
+
+    def print_matrix(self):
+        print(self.adjacency_matrix) #prints adjacency_matrix
 
     def clear_graph(self):
-        self.__init__()
+        self.__init__() #clear graph
 
     def print_graph(self):
         print(self.name)
         for source in sorted(self.nodes):
             print(source,":")
             for keys in self.nodes[source]:
-                print(keys)
+                print(keys) #prints
 
     def return_X(self,node):
         self.cordx=self.cordsX[node].pop()
         self.cordsX[node].append(self.cordx)
-        return self.cordx
+        return self.cordx # returns cordX of node
 
     def return_Y(self,node):
         self.cordy=self.cordsY[node].pop()
         self.cordsY[node].append(self.cordy)
-        return self.cordy
+        return self.cordy # retruns cordY of node
 
-#    def remove_Node(self,node):
-
-    #    self.nodes.pop(node, node)
 
 
 
