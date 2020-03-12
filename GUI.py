@@ -12,10 +12,9 @@ class main:
         self.master = master
         self.color_fg = 'black'
         self.color_bg = 'white'
-        self.switch_variable = StringVar(value="draw")
+        self.switch_variable = StringVar(value="")
         self.selected=False
         self.remove=False
-        self.graph_add_window_state=False
         self.entry={}
         self.drawWidgets()
         self.tools(self.switch_variable)
@@ -60,6 +59,7 @@ class main:
         self.menu.add_cascade(label='Add graph', menu=self.graphmenu)
         self.graphmenu.add_command(label='Macierz sąsiedzctwa',command=self.graph_add_adj)
         self.graphmenu.add_command(label='Macierz incydencji',command=self.graph_add_inc)
+        self.graphmenu.add_command(label='Macierz lista sąsiedzctwa',command=self.graph_add_adjlist)
         self.optionmenu = Menu(self.menu)
         self.menu.add_cascade(label='Options',menu=self.optionmenu)
         self.optionmenu.add_command(label='Clear',command=self.clear_canvas)
@@ -210,11 +210,12 @@ class main:
         else:
             messagebox.showerror("Error", "Select node that you want to remove") # removes selected node
 
+#   ADDING GRAPH BY ADJACENCY MATRIX graph_add_adj - > NodeQuantity_Submit  - > matrix_adj_submit
+
     def graph_add_adj(self):
         self.graph_add_window = Tk()
         self.graph_add_window.attributes("-topmost",True)
         self.graph_add_window.title('Adajacency matrix')
-        self.graph_add_window_state=True
         self.frame_one=Frame(self.graph_add_window,width=100,height=500,borderwidth=2,relief='sunken')
         self.frame_one.pack(side="left",fill=BOTH, expand=False)
         self.nodeQuantity_Label=Label(self.frame_one,font="Times 10 italic bold",text='How many Nodes?')
@@ -225,12 +226,64 @@ class main:
         self.nodeQuantity_Button.pack(side=TOP)
         self.graph_add_window.mainloop() #opens new window and ask for number of nodes for adjacency matrix
 
+    def NodeQuantity_Submit(self):
+        if self.nodeQuantity_Entry.get().isnumeric():
+            self.temp_NodeQuantity=int(self.nodeQuantity_Entry.get())
+            self.matrix_window=Tk()
+            self.matrix_window.attributes("-topmost",True)
+            self.matrix_window.title("Adjacency matrix")
+            self.graph_add_window.destroy()
+            self.frame_two=Frame(self.matrix_window,relief='sunken')
+            self.frame_two.pack(side="left",fill=BOTH, expand=False)
+            self.matrix_label=Label(self.frame_two,font="Times 10 italic bold", text="Enter matrix values")
+            self.matrix_label.pack(side=TOP)
+            self.entry_matrix={}
+            self.matrix_frame=Frame(self.frame_two)
+            self.matrix_frame.pack(side=TOP)
+            for row in range(self.temp_NodeQuantity):
+                for collumns in range(self.temp_NodeQuantity):
+                    index=str(row)+str(collumns)
+                    matrix_entry= Entry(self.matrix_frame,width=3)
+                    matrix_entry.insert(END,"0")
+                    matrix_entry.grid(row=row,column=collumns,stick="nsew")
+                    self.entry_matrix[index]=matrix_entry
+            self.adjacency_matrix_submit= Button(self.frame_two, width=15,text="Submit",command=self.matrix_adj_submit)
+            self.adjacency_matrix_submit.pack(side=TOP)
+            self.graph_add_window.mainloop()
+        else:
+            messagebox.showerror("Error", "You need to enter a number") #submits the number from graph_add_adj entry
+
+    def matrix_adj_submit(self):
+        self.clear_canvas()
+        self.matrix_error=False
+        for index in self.entry_matrix:
+            for keys in self.entry_matrix[index].get():
+                if keys.isnumeric():
+                    if int(keys)==1 or int(keys)==0:
+                        graf.create_adj_matrix(index,keys)
+                    else:
+                        print(keys)
+                        self.matrix_error=True
+                        break;
+                else:
+                    print(keys)
+                    self.matrix_error=True
+                    break;
+        if self.matrix_error==False:
+            graf.convert_adj_matrix(self.temp_NodeQuantity)
+            self.draw_nodes()
+            self.draw_edges()
+            self.matrix_window.destroy() # submits entered matrix into graph and draws it
+        else:
+            messagebox.showerror("Error", "Wrong data in matrix")
+            graf.adjacency_matrix={} #submits matrix
+
+#   ADDING GRAPH BY INCIDENCE MATRIX graph_add_inc - > Quantity_submit - > matrix_inc_submit
 
     def graph_add_inc(self):
         self.graph_add_window = Tk()
         self.graph_add_window.attributes("-topmost",True)
         self.graph_add_window.title('Incidence matrix')
-        self.graph_add_window_state==True
         self.frame_one=Frame(self.graph_add_window,width=100,height=500,borderwidth=2,relief='sunken')
         self.frame_one.pack(side="left",fill=BOTH, expand=False)
         self.nodeQuantity_Label=Label(self.frame_one,font="Times 10 italic bold",text='Number of nodes?')
@@ -245,41 +298,14 @@ class main:
         self.Quantity_Button.pack(side=TOP,pady=5)
         self.graph_add_window.mainloop() #opens new window and ask for number of nodes and edges for incidence matrix
 
-
-    def NodeQuantity_Submit(self):
-        if self.nodeQuantity_Entry.get().isnumeric():
-            self.temp_NodeQuantity=int(self.nodeQuantity_Entry.get())
-            self.matrix_window=Tk()
-            self.matrix_window.attributes("-topmost",True)
-            self.matrix_window.title("Adjacency matrix")
-            self.frame_two=Frame(self.matrix_window,relief='sunken')
-            self.frame_two.pack(side="left",fill=BOTH, expand=False)
-            self.matrix_label=Label(self.frame_two,font="Times 10 italic bold", text="Enter matrix values")
-            self.matrix_label.pack(side=TOP)
-            self.entry_matrix={}
-            self.matrix_frame=Frame(self.frame_two)
-            self.matrix_frame.pack(side=TOP)
-            for row in range(self.temp_NodeQuantity):
-                for collumns in range(self.temp_NodeQuantity):
-                    index=str(row)+str(collumns)
-                    matrix_entry= Entry(self.matrix_frame,width=3)
-                    matrix_entry.insert(END,"0")
-                    matrix_entry.grid(row=row,column=collumns,stick="nsew")
-                    self.entry_matrix[index]=matrix_entry
-            self.adjacency_matrix_submit= Button(self.frame_two, width=15,text="Submit",command=self.matrix_submit)
-            self.adjacency_matrix_submit.pack(side=TOP)
-            self.graph_add_window.mainloop()
-        else:
-            messagebox.showerror("Error", "You need to enter a number") #submits the number from graph_add_adj entry
-
     def Quantity_Submit(self):
         if self.nodeQuantity_Entry.get().isnumeric() and self.edgeQuantity_Entry.get().isnumeric():
             self.temp_NodeQuantity=int(self.nodeQuantity_Entry.get())
             self.temp_EdgeQuantity=int(self.edgeQuantity_Entry.get())
-            self.add_graph_window_closed()
             self.matrix_window=Tk()
             self.matrix_window.attributes("-topmost",True)
             self.matrix_window.title("Adjacency matrix")
+            self.graph_add_window.destroy()
             self.frame_two=Frame(self.matrix_window,relief='sunken')
             self.frame_two.pack(side="left",fill=BOTH, expand=False)
             self.matrix_label=Label(self.frame_two,font="Times 10 italic bold", text="Enter matrix values")
@@ -288,33 +314,64 @@ class main:
             self.matrix_frame=Frame(self.frame_two)
             self.matrix_frame.pack(side=TOP)
             for row in range(self.temp_NodeQuantity):
-                for collumns in range(self.temp_NodeQuantity):
+                for collumns in range(self.temp_EdgeQuantity):
                     index=str(row)+str(collumns)
                     matrix_entry= Entry(self.matrix_frame,width=3)
                     matrix_entry.insert(END,"0")
                     matrix_entry.grid(row=row,column=collumns,stick="nsew")
                     self.entry_matrix[index]=matrix_entry
-            self.adjacency_matrix_submit= Button(self.frame_two, width=15,text="Submit",command=self.matrix_submit)
+            self.adjacency_matrix_submit= Button(self.frame_two, width=15,text="Submit",command=self.matrix_inc_submit)
             self.adjacency_matrix_submit.pack(side=TOP)
             self.matrix_window.mainloop() # submits the data from graph_add_inc
 
-    def matrix_submit(self):
+    def matrix_inc_submit(self):
         self.clear_canvas()
+        self.matrix_error=False
         for index in self.entry_matrix:
             for keys in self.entry_matrix[index].get():
-                graf.create_adj_matrix(index,keys)
-        i=0
-        for name in range(self.temp_NodeQuantity):
-            if self.temp_NodeQuantity > 5:
-                radius=150
-            else:
-                radius=100
-            graf.add_node(name,round(sin(2*pi/self.temp_NodeQuantity*i)*radius+225,0),round(cos(2*pi/self.temp_NodeQuantity*i)*radius+225,0))
-            i+=1
-        self.draw_nodes()
-        graf.convert_adj_matrix()
-        self.draw_edges()
-        self.matrix_window.destroy() # submits entered matrix into graph and draws it
+                if keys.isnumeric():
+                    if int(keys)==1 or int(keys)==0:
+                        graf.create_inc_matrix(index,keys)
+                    else:
+                        self.matrix_error=True
+                        break;
+                else:
+                    self.matrix_error=True
+                    break;
+        if self.matrix_error==False:
+            graf.convert_inc_matrix(self.temp_NodeQuantity,self.temp_EdgeQuantity)
+            self.draw_nodes()
+            self.draw_edges()
+
+            self.matrix_window.destroy() # submits entered matrix into graph and draws it
+        else:
+            messagebox.showerror("Error", "Wrong data in matrix")
+            graf.incidence_matrix={} #submits matrix
+
+#   ADDING GRAPH BY ADJACENCY LIST graph_add_adjlist - >
+
+    def graph_add_adjlist(self):
+        self.graph_adj_list = Tk()
+        self.graph_adj_list.geometry("300x300")
+        self.graph_adj_list.attributes("-topmost",True)
+        self.graph_adj_list.title('Adajacency matrix')
+        self.frame_buttons= Frame(self.graph_adj_list,width=100,height=100)
+        self.frame_nodes= Frame(self.graph_adj_list,width=100,height=100)
+        self.frame_edges= Frame(self.graph_adj_list,width=100,height=100)
+        self.listbox= Listbox(self.frame_nodes, width=100,height=100)
+        self.node_label=Label(self.frame_buttons,font="Times 10 italic bold",text='Node name?')
+        self.node_entry=Entry(self.frame_buttons,width=15,justify=RIGHT)
+        self.node_add_button=Button(self.frame_buttons,text="Add")
+        self.node_remove_button=Button(self.frame_buttons,text="Remove")
+        self.frame_buttons.pack(side="left",fill=BOTH, expand=False)
+        self.node_label.pack(side="top")
+        self.node_entry.pack(side="top")
+        self.node_add_button.pack(side="top")
+        self.node_remove_button.pack(side="top")
+        self.frame_nodes.pack(side='left')
+        self.listbox.pack(side=TOP, fill=BOTH, expand=False)
+        self.frame_edges.pack(side='left')
+        self.graph_adj_list.mainloop()
 
     def print_entry(self):
         text=""
@@ -323,6 +380,7 @@ class main:
                 text+=str(self.entry[name].get())
         print(text) # prints entry does nothing ATM (test function)
 
+"""
     def create_Adjacency_Matrix(self):
         self.clear_canvas()
         self.temp=int(self.nodeQuantity_Entry.get())
@@ -340,9 +398,9 @@ class main:
                 if node1+node2 in graf.edge_wage:
                     self.c.create_line(graf.cordsX[node1],graf.cordsY[node1],graf.cordsX[node2],graf.cordsY[node2],width=1,fill="red",smooth=True)
         self.entry={}
-        self.graph_add_window.destroy()  # DOES NOTHING ATM
+            self.graph_add_window.destroy()  # DOES NOTHING ATM
 
-
+"""
 
 
 

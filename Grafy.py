@@ -1,3 +1,4 @@
+from math import sin, pi, cos
 class Graf:
 
     def __init__(self, name="Graf"):
@@ -5,8 +6,11 @@ class Graf:
         self.nodes = {}
         self.edge_wage={}
         self.adjacency_matrix={}
+        self.incidence_matrix={}
         self.cordsX = {}
         self.cordsY = {}
+        self.edgeCordsX= {}
+        self.edgeCordsY= {}
 
 
     def add_node(self, node_1,cordX,cordY):
@@ -19,7 +23,7 @@ class Graf:
         self.cordsX[node].append(cordX)
         self.cordsY[node].append(cordY) # addes node with cordx and cordy
 
-    def add_edge_undirected(self, node_1, node_2,wage=1):
+    def add_edge_undirected(self, node_1, node_2, wage=1):
         node1=str(node_1)
         node2=str(node_2)
         if node2 not in self.nodes:
@@ -37,7 +41,7 @@ class Graf:
             self.nodes[node2].append(self.temp_node)
             self.edge_wage[self.temp_node]=wage  # addes undirected edge
 
-    def add_edge_directed(self, node1, node2,wage=1):
+    def add_edge_directed(self, node1, node2, wage=1):
         if node2 not in self.nodes:
             self.nodes[node2]=[]
         if node1 not in self.nodes:
@@ -52,14 +56,46 @@ class Graf:
         self.adjacency_matrix[index]=[]
         self.adjacency_matrix[index].append(keys) #takes adj_matrix from GUI class and pass it to self.adjacency_matrix
 
-    def convert_adj_matrix(self):
+    def convert_adj_matrix(self,nodequantity):
+        radius=150 if nodequantity > 5 else 100 # adjust radius of circle that the graph is drawn on depending on nodequantity
+        i=0
+        for name in range(nodequantity):
+            self.add_node(name,round(sin(2*pi/nodequantity*i)*radius+225,0),round(cos(2*pi/nodequantity*i)*radius+225,0))
+            i+=1
         for index in self.adjacency_matrix:
             for keys in self.adjacency_matrix[index]:
                 if int(keys)==1:
                     self.add_edge_undirected(index[0],index[1]) #converts_matrix into graph
 
-    def print_matrix(self):
+    def print_adj_matrix(self):
         print(self.adjacency_matrix) #prints adjacency_matrix
+
+    def create_inc_matrix(self, index_1,keys):
+        index=str(index_1)
+        self.incidence_matrix[index]=[]
+        self.incidence_matrix[index].append(keys)
+
+    def convert_inc_matrix(self, nodequantity, edgequantity):
+        radius=150 if nodequantity > 5 else 100 # adjust radius of circle that the graph is drawn on depending on nodequantity
+        i=0
+        for name in range(nodequantity):
+            self.add_node(name,round(sin(2*pi/nodequantity*i)*radius+225,0),round(cos(2*pi/nodequantity*i)*radius+225,0))
+            i+=1
+        for i in range(edgequantity):
+            node1=None
+            node2=None
+            for l in range(nodequantity):
+                index=str(l)+str(i)
+                for keys in self.incidence_matrix[index]:
+                    if int(keys)==1 and node1!=None:
+                        node2=str(l)
+                    if int(keys)==1 and node1==None:
+                        node1=str(l)
+                if node1 and node2:
+                    self.add_edge_undirected(node1,node2)
+
+    def print_inc_matrix(self):
+        print(self.incidence_matrix)
 
     def clear_graph(self):
         self.__init__() #clear graph
