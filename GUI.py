@@ -16,6 +16,7 @@ class main:
         self.selected=False
         self.remove=False
         self.entry={}
+        self.adj_list_nodes={}
         self.drawWidgets()
         self.tools(self.switch_variable)
         self.c.bind('<ButtonPress-1>',self.Cords)
@@ -70,7 +71,7 @@ class main:
         graf.clear_graph()
         self.print.delete(ALL)  # clears canvas and graph
 
-    def clear_canvas_remove_node(self):
+    def clear_canvas_without_removing_graph(self):
         self.c.delete(ALL)
         self.print.delete(ALL)  #clear canvas without clearing graph
 
@@ -169,7 +170,6 @@ class main:
             for source in graf.cordsX:
                 for i in range(self.old_x-10,self.old_x+10):
                     if i in graf.cordsX[source]:
-
                         for k in range(self.old_y-20,self.old_y+20):
                             if k in graf.cordsY[source]:
                                 if self.selected==False:
@@ -186,24 +186,11 @@ class main:
     def remove_node(self):
         if self.selected==True:
             self.remove=True
-            temp_graf= Graf()
-            for source in graf.nodes:
-                if self.node!=source:
-                    self.corx=graf.cordsX[source].pop()
-                    self.cory=graf.cordsY[source].pop()
-                    temp_graf.add_node(source,self.corx,self.cory)
-                    for keys in graf.nodes[source]:
-                        if source+self.node!=keys:
-                            temp_graf.nodes[source].append(keys)
-
+            graf.remove_node(self.node)
         if self.remove==True:
-            graf.nodes=temp_graf.nodes
-            graf.cordsX=temp_graf.cordsX
-            graf.cordsY=temp_graf.cordsY
-            self.clear_canvas_remove_node()
+            self.clear_canvas_without_removing_graph()
             self.draw_nodes()
             self.draw_edges()
-            temp_graf=None
             self.remove=False
             self.node=None
             self.selected=False
@@ -351,28 +338,159 @@ class main:
 #   ADDING GRAPH BY ADJACENCY LIST graph_add_adjlist - >
 
     def graph_add_adjlist(self):
+        #window
         self.graph_adj_list = Tk()
-        self.graph_adj_list.geometry("300x300")
+        self.graph_adj_list.geometry("285x280")
+        self.graph_adj_list.resizable(False,False)
         self.graph_adj_list.attributes("-topmost",True)
         self.graph_adj_list.title('Adajacency matrix')
-        self.frame_buttons= Frame(self.graph_adj_list,width=100,height=100)
-        self.frame_nodes= Frame(self.graph_adj_list,width=100,height=100)
-        self.frame_edges= Frame(self.graph_adj_list,width=100,height=100)
-        self.listbox= Listbox(self.frame_nodes, width=100,height=100)
-        self.node_label=Label(self.frame_buttons,font="Times 10 italic bold",text='Node name?')
-        self.node_entry=Entry(self.frame_buttons,width=15,justify=RIGHT)
-        self.node_add_button=Button(self.frame_buttons,text="Add")
-        self.node_remove_button=Button(self.frame_buttons,text="Remove")
-        self.frame_buttons.pack(side="left",fill=BOTH, expand=False)
-        self.node_label.pack(side="top")
-        self.node_entry.pack(side="top")
-        self.node_add_button.pack(side="top")
-        self.node_remove_button.pack(side="top")
-        self.frame_nodes.pack(side='left')
-        self.listbox.pack(side=TOP, fill=BOTH, expand=False)
-        self.frame_edges.pack(side='left')
+
+        #frames
+        self.frame_buttons= Frame(self.graph_adj_list,width=50,height=50,padx=1)
+        self.frame_nodes= Frame(self.graph_adj_list,width=50,height=50,padx=1)
+        self.frame_edges= Frame(self.graph_adj_list,width=50,height=50,padx=1)
+
+        #frame buttons
+        self.node_label=Label(self.frame_buttons,font="Times 10 italic bold",text='Node name')
+        self.node_list_entry=Entry(self.frame_buttons,width=15,justify=RIGHT)
+        self.node_add_button=Button(self.frame_buttons,text="Add",width=10,command=self.graph_adj_list_add_node)
+        self.node_remove_button=Button(self.frame_buttons,text="Remove",width=10, command=self.graph_adj_list_remove_node)
+        self.node_submit_button=Button(self.frame_buttons,text="Submit",width=10, command=self.graph_adj_list_submit)
+
+        #frame nodes
+        self.node_listbox= Listbox(self.frame_nodes, width=8,height=10,justify=RIGHT)
+        self.node_button_show_edges= Button(self.frame_nodes, width=3, text=">>", command=self.chose_node)
+
+        #frame edges
+        self.edge_listbox_available_nodes=Listbox(self.frame_edges,width=10,height=5,justify=RIGHT)
+        self.edge_add_button=Button(self.frame_edges,text="Add",width=7, command= self.graph_adj_list_add_edge)
+        self.edge_listbox_added_nodes=Listbox(self.frame_edges,width=10,height=5,justify=RIGHT)
+        self.edge_remove_button=Button(self.frame_edges,text="Remove",width=7, command= self.graph_adj_list_remove_edge)
+
+        #frames.grid()
+        self.frame_buttons.grid(row=0,column=0,sticky="nsew")
+        self.frame_nodes.grid(row=0,column=1,sticky="nsew")
+        self.frame_edges.grid(row=0,column=2,sticky="nsew")
+
+        #frame_buttons.grid()
+        self.node_label.grid(row=0,column=0)
+        self.node_list_entry.grid(row=1,column=0)
+        self.node_add_button.grid(row=2,column=0)
+        self.node_remove_button.grid(row=3,column=0)
+        self.node_submit_button.grid(row=4,column=0)
+
+        #frame nodes.grid()
+        self.node_listbox.grid(row=0,column=0)
+        self.node_button_show_edges.grid(row=1,column=0)
+
+
+        #frame edges.grid()
+        self.edge_listbox_available_nodes.grid(row=0,column=0)
+        self.edge_add_button.grid(row=1,column=0)
+        self.edge_listbox_added_nodes.grid(row=2,column=0)
+        self.edge_remove_button.grid(row=3,column=0)
+
         self.graph_adj_list.mainloop()
 
+
+    def graph_adj_list_add_node(self):
+        if self.node_list_entry.get():
+            self.node_listbox_state=False
+            self.temp_node=self.node_list_entry.get()
+            self.list_node=self.node_listbox.get(0,END)
+            for keys in self.list_node:
+                if keys==self.temp_node:
+                    self.node_listbox_state=True
+            if self.node_listbox_state==False:
+                self.node_listbox.insert(END,self.temp_node)
+                self.adj_list_nodes[self.node_list_entry.get()]=[]
+            else:
+                messagebox.showerror("Error", "There is already a node with this name")
+        else:
+            messagebox.showerror("Error", "Entry box can't be empty")
+
+    def graph_adj_list_remove_node(self):
+            for index in self.adj_list_nodes:
+                i=0
+                for keys in self.adj_list_nodes[index]:
+                    if index+self.node_listbox.get(ANCHOR)==keys or self.node_listbox.get(ANCHOR)+index==keys:
+                        self.adj_list_nodes[index].pop(i)
+                        i+=1
+            del self.adj_list_nodes[str(self.node_listbox.get(ANCHOR))]
+            self.node_listbox.delete(ANCHOR)
+            self.edge_listbox_available_nodes.delete(0,END)
+            self.edge_listbox_added_nodes.delete(0,END)
+
+    def chose_node(self):
+        self.edge_listbox_available_nodes.delete(0,END)
+        self.edge_listbox_added_nodes.delete(0,END)
+        for index in self.adj_list_nodes:
+            if self.node_listbox.get(ANCHOR)==index:
+                for index2 in self.adj_list_nodes:
+                    if index!=index2 and index+index2 not in self.adj_list_nodes[index]:
+                        self.edge_listbox_available_nodes.insert(END, index+index2)
+                        self.temp_chosen_node=self.node_listbox.get(ANCHOR)
+        for index in self.adj_list_nodes:
+            if self.temp_chosen_node==index:
+                for keys in self.adj_list_nodes[index]:
+                    self.edge_listbox_added_nodes.insert(END,keys)
+
+    def graph_adj_list_add_edge(self):
+        self.edge_listbox_added_nodes.delete(0,END)
+        if self.edge_listbox_available_nodes.get(ANCHOR) not in self.adj_list_nodes[self.temp_chosen_node]:
+            self.adj_list_nodes[self.temp_chosen_node].append(self.edge_listbox_available_nodes.get(ANCHOR))
+        for index in self.adj_list_nodes:
+            if index==self.temp_chosen_node:
+                for keys in self.adj_list_nodes[index]:
+                    self.edge_listbox_added_nodes.insert(END,keys)
+        self.edge_listbox_available_nodes.delete(0,END)
+        for index in self.adj_list_nodes:
+            if self.temp_chosen_node==index:
+                for index2 in self.adj_list_nodes:
+                    if index!=index2 and index+index2 not in self.adj_list_nodes[index]:
+                        self.edge_listbox_available_nodes.insert(END, index+index2)
+
+    def graph_adj_list_remove_edge(self):
+        for index in self.adj_list_nodes:
+            i=0
+            for keys in self.adj_list_nodes[index]:
+                if keys==self.edge_listbox_added_nodes.get(ANCHOR):
+                    self.adj_list_nodes[index].pop(i)
+                    i+=1
+
+        self.edge_listbox_added_nodes.delete(0,END)
+        for index in self.adj_list_nodes:
+            if index==self.temp_chosen_node:
+                for keys in self.adj_list_nodes[index]:
+                    self.edge_listbox_added_nodes.insert(END,keys)
+
+        self.edge_listbox_available_nodes.delete(0,END)
+        for index in self.adj_list_nodes:
+            if self.temp_chosen_node==index:
+                for index2 in self.adj_list_nodes:
+                    if index!=index2 and index+index2 not in self.adj_list_nodes[index]:
+                        self.edge_listbox_available_nodes.insert(END, index+index2)
+
+    def graph_adj_list_submit(self):
+        self.clear_canvas()
+        radius=150 #if nodequantity > 5 else 100 # adjust radius of circle that the graph is drawn on depending on nodequantity
+        i=0
+        print(self.adj_list_nodes)
+        for index in self.adj_list_nodes:
+            graf.add_node(index,round(sin(2*pi/6*i)*radius+225,0),round(cos(2*pi/6*i)*radius+225,0))
+            i+=1
+            for keys in self.adj_list_nodes[index]:
+                keys=keys.replace(index,'')
+                graf.add_edge_undirected(index,keys)
+        print(graf.nodes)
+        self.draw_nodes()
+        self.draw_edges()
+        self.adj_list_nodes={}
+        self.node_listbox.delete(0,END)
+        self.edge_listbox_added_nodes.delete(0,END)
+        self.edge_listbox_available_nodes.delete(0,END)
+
+"""
     def print_entry(self):
         text=""
         if self.entry:
@@ -380,7 +498,7 @@ class main:
                 text+=str(self.entry[name].get())
         print(text) # prints entry does nothing ATM (test function)
 
-"""
+
     def create_Adjacency_Matrix(self):
         self.clear_canvas()
         self.temp=int(self.nodeQuantity_Entry.get())
