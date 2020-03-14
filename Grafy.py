@@ -23,6 +23,18 @@ class Graf:
         self.cordsX[node].append(cordX)
         self.cordsY[node].append(cordY) # addes node with cordx and cordy
 
+    def remove_node(self,node_1): #removes node
+        self.temp_node=str(node_1)
+        del self.nodes[self.temp_node]
+        del self.cordsX[self.temp_node]
+        del self.cordsY[self.temp_node]
+        for index in self.nodes:
+            i=0
+            for keys in self.nodes[index]:
+                if str(index)+self.temp_node==str(keys):
+                    self.nodes[index].pop(i)
+                i+=1
+
     def add_edge_undirected(self, node_1, node_2, wage=1):
         node1=str(node_1)
         node2=str(node_2)
