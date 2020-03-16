@@ -68,6 +68,13 @@ class main:
         self.devmenu = Menu(self.menu)
         self.menu.add_cascade(label='DEVTOOLS',menu=self.devmenu)
         self.devmenu.add_command(label='Graph Data',command=self.open_dev_window)
+        self.file = Menu(self.menu)
+        self.menu.add_cascade(label='file',menu=self.file)
+        self.file.add_command(label='Save',command=self.save)
+        self.file.add_command(label='Load',command=self.load)
+
+
+
 
     def remove_node(self):
         if self.selected==True:
@@ -379,6 +386,7 @@ class main:
         self.node_add_button=Button(self.frame_buttons,text="Add",width=10,command=self.graph_adj_list_add_node)
         self.node_remove_button=Button(self.frame_buttons,text="Remove",width=10, command=self.graph_adj_list_remove_node)
         self.node_submit_button=Button(self.frame_buttons,text="Submit",width=10, command=self.graph_adj_list_submit)
+        self.node_get_button=Button(self.frame_buttons,text="GET",width=10, command=self.get_adj_list)
 
         #frame nodes
         self.node_listbox= Listbox(self.frame_nodes, width=8,height=10,justify=RIGHT)
@@ -401,6 +409,7 @@ class main:
         self.node_add_button.grid(row=2,column=0)
         self.node_remove_button.grid(row=3,column=0)
         self.node_submit_button.grid(row=4,column=0)
+        self.node_get_button.grid(row=5,column=0)
 
         #frame nodes.grid()
         self.node_listbox.grid(row=0,column=0)
@@ -414,7 +423,6 @@ class main:
         self.edge_remove_button.grid(row=3,column=0)
 
         self.graph_adj_list.mainloop()
-
 
     def graph_adj_list_add_node(self):
         if self.node_list_entry.get():      # checks if there an entry
@@ -505,6 +513,7 @@ class main:
         self.edge_listbox_available_nodes.delete(0,END)
 
 ##### adj_list window listboxes display functionn ###
+
     def display_edge_listbox_added_nodes(self):
         self.edge_listbox_added_nodes.delete(0,END)
         for index in self.adj_list_nodes: # display added edges
@@ -520,12 +529,135 @@ class main:
                     if index!=index2 and index+index2 not in self.adj_list_nodes[index]:
                         self.edge_listbox_available_nodes.insert(END, index+index2)
 
+#### Import graf into  adj list ######
+
+    def get_adj_list(self):
+        self.adj_list_nodes={}
+        for index in graf.nodes:
+            self.adj_list_nodes[index]=[]
+            for keys in graf.nodes[index]:
+                self.adj_list_nodes[index].append(keys)
+
+        for index in self.adj_list_nodes:
+            self.node_listbox.insert(END,index)
+        print(self.adj_list_nodes)
+
 ###############################################
 
+###############################################
+###### Eulerian Test #########################
+    def eulerian_test(self):
+        graf.convert_to_adj_list()
+        if self.isConnected()==False:
+            return 0
+        else:
+            odd=0
+            for index in graf.adj_list:
+                if len(graf.adj_list[index]) % 2 !=0:
+                    odd+=1
+            if odd==0:
+                return 1
+            elif odd==2:
+                return 2
+            elif odd>2:
+                return 0
+
+    def isConnected(self):
+        visited={}
+        for index in graf.adj_list:
+            visited[index]=False
+        i=0
+        for index in graf.adj_list:
+            if len(graf.adj_list[index])>=1:
+                break;
+            i+=1
+        if i == len(graf.adj_list)-1:
+            return True
+        self.DFSUtil(index,visited)
+        for index in graf.adj_list:
+            if visited[index]==False and len(graf.adj_list[index])>0:
+                return False
+        return True
+
+    def DFSUtil(self,v,visited):
+        visited[v]=True
+        for i in graf.adj_list[v]:
+            if visited[i]==False:
+                self.DFSUtil(i,visited)
+
+###############################################
+
+###############################################
+
+    def printforall(self):
+        u="A"
+        if self.eulerian_test()==1 or self.eulerian_test()==2:
+            if self.eulerian_test()==1:
+                print("cykl")
+            if self.eulerian_test()==2:
+                print("ścieżka")
+            for i in graf.adj_list:
+                if len(graf.adj_list[i]) %2 != 0:
+                    u=i
+                    break
+            self.printEuler(u)
+
+
+    def printEuler(self,u):
+        for v in graf.adj_list[u]:
+            if self.validNextEdge(u,v):
+                print(u,"-",v),
+                self.rmvEdge(u,v)
+                self.printEuler(v)
+
+    def Count(self,v,visited):
+        count=1
+        visited[v]=True
+        for i in graf.adj_list[v]:
+            if visited[i]==False:
+                count=count+self.Count(i,visited)
+        return count
+
+    def validNextEdge(self,u, v):
+        if len(graf.adj_list[u])==1:
+            return True
+        else:
+            visited={}
+            for index in graf.adj_list:
+                visited[index]=False
+            count1=self.Count(u,visited)
+
+            self.rmvEdge(u,v)
+            visited={}
+            for index in graf.adj_list:
+                visited[index]=False
+            count2=self.Count(u,visited)
+
+            self.addEdge(u,v)
+
+            return False if count1 > count2 else True
+
+    def rmvEdge(self,u,v):
+        i=0
+        for index in graf.adj_list[u]:
+            if index==v:
+                graf.adj_list[u].pop(i)
+                break;
+            i+=1
+        i=0
+        for index in graf.adj_list[v]:
+            if index==u:
+                graf.adj_list[v].pop(i)
+                break;
+            i+=1
+
+    def addEdge(self,u,v):
+        graf.adj_list[u].append(v)
+        graf.adj_list[v].append(u)
 
     def open_dev_window(self):
         self.dev_window= Tk()
-        self.dev_window.geometry("250x250")
+        self.dev_window.geometry("200x350")
         self.dev_window.attributes("-topmost",True)
         self.dev_window.title('Adajacency matrix')
         self.dev_window.resizable(False,False)
@@ -538,44 +670,81 @@ class main:
         self.dev_print_cordsY= Button(self.dev_window_frame,text="Print cordsY",command=lambda: print(graf.cordsY))
         self.dev_print_adjacencymatrix= Button(self.dev_window_frame,text="Print adjacencymatrix",command=lambda: print(graf.adjacency_matrix))
         self.dev_print_incidencematrix= Button(self.dev_window_frame,text="Print incmatrix",command=lambda: print(graf.incidence_matrix))
+        self.dev_print_euler= Button(self.dev_window_frame,text="Eulerian Test",command=self.eulerian_test)
+        self.dev_print_adj_list= Button(self.dev_window_frame,text="Print adj_list",command=lambda: print(graf.adj_list))
+        self.dev_print_euler_cycles= Button(self.dev_window_frame,text="Eulerian cycles/paths",command=self.printforall)
+
 
         self.dev_print_grafnodes.grid(row=0,column=0)
         self.dev_print_cordsX.grid(row=1,column=0)
         self.dev_print_cordsY.grid(row=2,column=0)
         self.dev_print_adjacencymatrix.grid(row=3,column=0)
         self.dev_print_incidencematrix.grid(row=4,column=0)
+        self.dev_print_adj_list.grid(row=5,column=0)
+        self.dev_print_euler.grid(row=6,column=0)
+        self.dev_print_euler_cycles.grid(row=7,column=0)
+
+
         self.dev_window.mainloop()
 
+    def save(self):
+        graf.convert_to_adj_list()
+        f=open("savedgraf.txt","w+")
+        for index in graf.nodes:
+            f.write(index)
+            f.write(" ")
+            for keys in graf.cordsX[index]:
+                f.write(str(keys))
+            f.write(" ")
+            for keys in graf.cordsY[index]:
+                f.write(str(keys))
+            f.write("\r\n")
+        f.write("\r\n")
+        for index in graf.adj_list:
+            for keys in graf.adj_list[index]:
+                f.write(index)
+                f.write(" ")
+                f.write(keys)
+                f.write("\r\n")
+        f.close()
 
-"""
-    def print_entry(self):
-        text=""
-        if self.entry:
-            for name in self.entry:
-                text+=str(self.entry[name].get())
-        print(text) # prints entry does nothing ATM (test function)
-
-
-    def create_Adjacency_Matrix(self):
+    def load(self):
         self.clear_canvas()
-        self.temp=int(self.nodeQuantity_Entry.get())
-        i=1
-        for name in self.entry:
-            graf.create_Adj_Matrix(name,self.entry[name].get())
-            graf.add_node(name,round(sin(2*pi/self.temp*i)*100+200,0),round(cos(2*pi/self.temp*i)*100+200,0))
-            i+=1
-        graf.convert_matrix()
-        for name in graf.nodes:
-            self.c.create_image(round(graf.return_X(name),0),round(graf.return_Y(name),0), image=photo)
-            self.c.create_text(graf.return_X(name)+10,graf.return_Y(name)-15,fill="darkblue",font="Times 10 italic bold", text=name)
-        for node1 in graf.nodes:
-            for node2 in graf.nodes:
-                if node1+node2 in graf.edge_wage:
-                    self.c.create_line(graf.cordsX[node1],graf.cordsY[node1],graf.cordsX[node2],graf.cordsY[node2],width=1,fill="red",smooth=True)
-        self.entry={}
-            self.graph_add_window.destroy()  # DOES NOTHING ATM
+        f=open("savedgraf.txt","r")
+        method="node"
+        f1= f.readlines()
+        for x in f1:
+            if not x.strip():
+                method="edge"
+                continue
+            if method=="node":
+                data=x.split()
+                i=0
+                for y in data:
+                    if i==0:
+                        node=str(y)
+                    if i==1:
+                        cordx=int(y)
+                    if i==2:
+                        cordy=int(y)
+                    i+=1
+                graf.add_node(node,cordx,cordy)
+            if method=="edge":
+                data=x.split()
+                i=0
+                for y in data:
+                    if i==0:
+                        node1=y
+                    if i==1:
+                        node2=y
+                    i+=1
+                graf.add_edge_directed(node1,node2)
+        f.close()
+        self.draw_nodes()
+        self.draw_edges()
 
-"""
+
+
 
 
 

@@ -5,6 +5,7 @@ class Graf:
         self.name = name
         self.nodes = {}
         self.edge_wage={}
+        self.adj_list={}
         self.adjacency_matrix={}
         self.incidence_matrix={}
         self.cordsX = {}
@@ -42,16 +43,21 @@ class Graf:
             self.nodes[node2]=[]
         if node1 not in self.nodes:
             self.nodes[node1]=[]
-        if node1+node2 not in self.nodes[node1]:
+        if node1!=node2:
             self.temp_node=node1
             self.temp_node+=node2
             self.nodes[node1].append(self.temp_node)
             self.edge_wage[self.temp_node]=wage
-        if node2+node1 not in self.nodes[node2]:
+
             self.temp_node=node2
             self.temp_node+=node1
             self.nodes[node2].append(self.temp_node)
             self.edge_wage[self.temp_node]=wage  # addes undirected edge
+        else:
+            self.temp_node=node1
+            self.temp_node+=node2
+            self.nodes[node1].append(self.temp_node)
+            self.edge_wage[self.temp_node]=wage
 
     def add_edge_directed(self, node1, node2, wage=1):
         if node2 not in self.nodes:
@@ -72,12 +78,13 @@ class Graf:
         radius=150 if nodequantity > 5 else 100 # adjust radius of circle that the graph is drawn on depending on nodequantity
         i=0
         for name in range(nodequantity):
-            self.add_node(name,round(sin(2*pi/nodequantity*i)*radius+225,0),round(cos(2*pi/nodequantity*i)*radius+225,0))
+            self.add_node(name,round(sin(2*pi/nodequantity*i)*radius+225),round(cos(2*pi/nodequantity*i)*radius+225))
             i+=1
         for index in self.adjacency_matrix:
             for keys in self.adjacency_matrix[index]:
                 if int(keys)==1:
-                    self.add_edge_undirected(index[0],index[1]) #converts_matrix into graph
+                    if index[0]+index[1] not in self.nodes[index[0]]:
+                        self.add_edge_undirected(index[0],index[1]) #converts_matrix into graph
 
     def print_adj_matrix(self):
         print(self.adjacency_matrix) #prints adjacency_matrix
@@ -104,7 +111,8 @@ class Graf:
                     if int(keys)==1 and node1==None:
                         node1=str(l)
                 if node1 and node2:
-                    self.add_edge_undirected(node1,node2)
+                    if node1+node2 not in self.nodes[node1]:
+                        self.add_edge_undirected(node1,node2)
 
     def print_inc_matrix(self):
         print(self.incidence_matrix)
@@ -122,12 +130,21 @@ class Graf:
     def return_X(self,node):
         self.cordx=self.cordsX[node].pop()
         self.cordsX[node].append(self.cordx)
-        return self.cordx # returns cordX of node
+        return float(self.cordx) # returns cordX of node
 
     def return_Y(self,node):
         self.cordy=self.cordsY[node].pop()
         self.cordsY[node].append(self.cordy)
-        return self.cordy # retruns cordY of node
+        return float(self.cordy) # retruns cordY of node
+
+    def convert_to_adj_list(self):
+        self.adj_list={}
+        for index in self.nodes:
+            self.adj_list[index]=[]
+            for index2 in self.nodes:
+                for keys in self.nodes[index]:
+                    if index+index2==keys:
+                        self.adj_list[index].append(index2)
 
 
 
