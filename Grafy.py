@@ -4,6 +4,7 @@ class Graf:
     def __init__(self, name="Graf"):
         self.name = name
         self.nodes = {}
+        self.edge_quantity={}
         self.edge_wage={}
         self.adj_list={}
         self.adjacency_matrix={}
@@ -12,6 +13,7 @@ class Graf:
         self.cordsY = {}
         self.edgeCordsX= {}
         self.edgeCordsY= {}
+        self.times_has_been_drawn={}
 
 
     def add_node(self, node_1,cordX,cordY):
@@ -35,6 +37,11 @@ class Graf:
                 if str(index)+self.temp_node==str(keys):
                     self.nodes[index].pop(i)
                 i+=1
+        for index in self.nodes:
+            if index+self.temp_node in self.edge_quantity:
+                del self.edge_quantity[index+self.temp_node]
+            if self.temp_node+index in self.edge_quantity:
+                del self.edge_quantity[self.temp_node+index]
 
     def add_edge_undirected(self, node_1, node_2, wage=1):
         node1=str(node_1)
@@ -48,26 +55,37 @@ class Graf:
             self.temp_node+=node2
             self.nodes[node1].append(self.temp_node)
             self.edge_wage[self.temp_node]=wage
+            self.add_edge_quantity(self.temp_node)
 
             self.temp_node=node2
             self.temp_node+=node1
             self.nodes[node2].append(self.temp_node)
             self.edge_wage[self.temp_node]=wage  # addes undirected edge
+            self.add_edge_quantity(self.temp_node)
         else:
             self.temp_node=node1
             self.temp_node+=node2
             self.nodes[node1].append(self.temp_node)
             self.edge_wage[self.temp_node]=wage
+            self.add_edge_quantity(self.temp_node)
 
     def add_edge_directed(self, node1, node2, wage=1):
         if node2 not in self.nodes:
             self.nodes[node2]=[]
         if node1 not in self.nodes:
             self.nodes[node1]=[]
-        self.temp=node1
-        self.temp+=node2
-        self.nodes[node1].append(self.temp)
-        self.edge_wage[self.temp]=wage # addes directed edge
+        self.temp_node=node1
+        self.temp_node+=node2
+        self.nodes[node1].append(self.temp_node)
+        self.edge_wage[self.temp_node]=wage # addes directed edge
+        self.add_edge_quantity(self.temp_node)
+
+    def add_edge_quantity(self,temp):
+        if temp not in self.edge_quantity:
+            self.edge_quantity[temp]=0
+        temp_quantity=self.edge_quantity[temp]
+        temp_quantity+=1
+        self.edge_quantity[temp]=temp_quantity
 
     def create_adj_matrix(self,index_1,keys):
         index=str(index_1)

@@ -47,10 +47,48 @@ class main:
 
 
         self.print=Canvas(self.master,height=400,width=300, bg=self.color_bg)
+
+
+
+
+        y=float(200)
+        x=float(500)
+        y1=float(501)
+        x1=float(500)
+        ymid=(y+y1)/2
+        xmid=(x+x1)/2
+        z=150
+
+
+        a1=-(x-x1)/(y-y1)
+
+        b1=ymid-xmid*a1
+
+
+
+        VarA=float((1+a1**2))
+        VarB=float(((-2)*xmid+2*a1*b1-2*a1*ymid))
+        VarC=float((xmid**2)+(b1**2)-2*b1*ymid+(ymid**2)-(z**2))
+
+
+        DELTA=VarB**2-4*VarA*VarC
+
+
+        X_wynik1=(-VarB+sqrt(DELTA))/(2*VarA)
+        X_wynik2=(-VarB-sqrt(DELTA))/(2*VarA)
+
+
+        Y_wynik1=a1*X_wynik1+b1
+        Y_wynik2=a1*X_wynik2+b1
+
+
+
         self.print.pack(side=LEFT,fill=Y,expand=False)
-
-
         self.c=Canvas(self.master,width=500,height=400,bg=self.color_bg,)
+
+
+        self.c.create_line(x,y,fabs(X_wynik1),fabs(Y_wynik1),x1,y1,smooth=True)
+
         self.c.pack(fill=BOTH,expand=True)
 
 
@@ -117,10 +155,15 @@ class main:
             self.c.create_text(graf.return_X(source)+10,graf.return_Y(source)-15,fill="darkblue",font="Times 10 italic bold", text=source)    #draw graph nodes
 
     def draw_edges(self):
-        for node1 in graf.nodes:
-            for node2 in graf.nodes:
-                if str(node1)+str(node2) in graf.edge_wage:
-                    self.c.create_line(graf.cordsX[node1],graf.cordsY[node1],graf.cordsX[node2],graf.cordsY[node2],width=1,fill="red",smooth=True)    #draw graph edges
+        graf.convert_to_adj_list()
+        graf.times_has_been_drawn={}
+        for index in graf.edge_quantity:
+            graf.times_has_been_drawn[index]=0
+        for node1 in graf.adj_list:
+            for node2 in graf.adj_list[node1]:
+                    #self.c.create_line(graf.cordsX[node1],graf.cordsY[node1],graf.cordsX[node2],graf.cordsY[node2],width=1,fill="red",smooth=True)    #draw graph edges
+                    self.create_line_arc(node1,node2)
+
 
     def print_graph(self):
         self.print.delete(ALL)
@@ -133,6 +176,57 @@ class main:
                 self.text+=str(keys)
                 self.text+="\n"
         self.print.create_text(50,200,fill="darkblue",font="Times 10 italic bold", text=self.text)   #prints graph on canvas
+
+    def create_line_arc(self,node1,node2):
+        if graf.edge_quantity[node1+node2]==1:
+            self.c.create_line(graf.return_X(node1),graf.return_Y(node1),graf.return_X(node2),graf.return_Y(node2),width=1,fill="red",smooth=True)    #draw graph edges
+            self.temp=graf.times_has_been_drawn[node1+node2]
+            self.temp+=1
+            graf.times_has_been_drawn[node1+node2]=self.temp
+            graf.times_has_been_drawn[node2+node1]=self.temp
+        else:
+            if graf.times_has_been_drawn[node1+node2] < graf.edge_quantity[node1+node2]:
+                ratio = graf.edge_quantity[node1+node2]-graf.times_has_been_drawn[node1+node2]
+                print("graf edge quantity",graf.edge_quantity[node1+node2])
+                print("graf.times_has_been_drawn",graf.times_has_been_drawn[node1+node2])
+                print(ratio)
+                if ratio<=2:
+                    z=50
+                if ratio>2 and ratio<=4:
+                    z=100
+                if ratio>4 and ratio<=6:
+                    z=150
+                if ratio>6 and ratio<=8:
+                    z=200
+                x=graf.return_X(node1)
+                y=graf.return_Y(node1)
+                x1=graf.return_X(node2)
+                y1=graf.return_Y(node2)
+                if x==x1:
+                    x+=1
+                if y==y1:
+                    y+=1
+                ymid=(y+y1)/2
+                xmid=(x+x1)/2
+                a1=-(x-x1)/(y-y1)
+                b1=ymid-xmid*a1
+                VarA=float((1+a1**2))
+                VarB=float(((-2)*xmid+2*a1*b1-2*a1*ymid))
+                VarC=float((xmid**2)+(b1**2)-2*b1*ymid+(ymid**2)-(z**2))
+                DELTA=float(VarB**2-4*VarA*VarC)
+                X_wynik1=float((-VarB+sqrt(DELTA))/(2*VarA))
+                X_wynik2=float((-VarB-sqrt(DELTA))/(2*VarA))
+                Y_wynik1=a1*X_wynik1+b1
+                Y_wynik2=a1*X_wynik2+b1
+                print("ile to ratio % 2 =", ratio%2)
+                if ratio % 2 == 0:
+                    self.c.create_line(graf.return_X(node1),graf.return_Y(node1),X_wynik1,Y_wynik1,graf.return_X(node2),graf.return_Y(node2),width=1,fill="red",smooth=True)    #draw graph edges
+                else:
+                    self.c.create_line(graf.return_X(node1),graf.return_Y(node1),X_wynik2,Y_wynik2,graf.return_X(node2),graf.return_Y(node2),width=1,fill="red",smooth=True)    #draw graph edges
+                self.temp=graf.times_has_been_drawn[node1+node2]
+                self.temp+=1
+                graf.times_has_been_drawn[node1+node2]=self.temp
+                graf.times_has_been_drawn[node2+node1]=self.temp
 
 ###############################################
 
@@ -180,9 +274,13 @@ class main:
                                         if j in graf.cordsX[keys]:
                                             for l in range(self.new_y-10,self.new_y+10):
                                                 if l in graf.cordsY[keys]:
-                                                    self.c.create_line(graf.cordsX[source],graf.cordsY[source],graf.cordsX[keys],graf.cordsY[keys],width=1,fill="red",smooth=True)
-                                                    #self.c.create_line(graf.cordsX[source],graf.cordsY[source],graf.cordsX[keys],graf.cordsY[keys],width=1,fill="red",arrow='last',capstyle=ROUND,smooth=True)
                                                     graf.add_edge_undirected(source,keys)
+                                                    self.clear_canvas_without_removing_graph()
+                                                    self.draw_nodes()
+                                                    self.draw_edges()
+                                                    #self.c.create_line(graf.return_X(source),graf.return_Y(source),graf.return_Y(source),graf.return_X(keys),graf.return_X(keys),graf.return_Y(keys),width=1,fill="red",smooth=True)
+                                                    #self.c.create_line(graf.cordsX[source],graf.cordsY[source],graf.cordsX[keys],graf.cordsY[keys],width=1,fill="red",arrow='last',capstyle=ROUND,smooth=True)
+
 
         if self.tool=="drawDirected":
             self.new_x=e.x
@@ -668,6 +766,7 @@ class main:
         self.dev_print_grafnodes= Button(self.dev_window_frame,text="Print GRAF.NODES",command=lambda: print(graf.nodes))
         self.dev_print_cordsX= Button(self.dev_window_frame,text="Print cordsX",command=lambda: print(graf.cordsX) )
         self.dev_print_cordsY= Button(self.dev_window_frame,text="Print cordsY",command=lambda: print(graf.cordsY))
+        self.dev_print_edge_quantity= Button(self.dev_window_frame,text="Print cordsY",command=lambda: print(graf.edge_quantity))
         self.dev_print_adjacencymatrix= Button(self.dev_window_frame,text="Print adjacencymatrix",command=lambda: print(graf.adjacency_matrix))
         self.dev_print_incidencematrix= Button(self.dev_window_frame,text="Print incmatrix",command=lambda: print(graf.incidence_matrix))
         self.dev_print_euler= Button(self.dev_window_frame,text="Eulerian Test",command=self.eulerian_test)
@@ -678,11 +777,12 @@ class main:
         self.dev_print_grafnodes.grid(row=0,column=0)
         self.dev_print_cordsX.grid(row=1,column=0)
         self.dev_print_cordsY.grid(row=2,column=0)
-        self.dev_print_adjacencymatrix.grid(row=3,column=0)
-        self.dev_print_incidencematrix.grid(row=4,column=0)
-        self.dev_print_adj_list.grid(row=5,column=0)
-        self.dev_print_euler.grid(row=6,column=0)
-        self.dev_print_euler_cycles.grid(row=7,column=0)
+        self.dev_print_edge_quantity.grid(row=3,column=0)
+        self.dev_print_adjacencymatrix.grid(row=4,column=0)
+        self.dev_print_incidencematrix.grid(row=5,column=0)
+        self.dev_print_adj_list.grid(row=6,column=0)
+        self.dev_print_euler.grid(row=7,column=0)
+        self.dev_print_euler_cycles.grid(row=8,column=0)
 
 
         self.dev_window.mainloop()
@@ -724,9 +824,9 @@ class main:
                     if i==0:
                         node=str(y)
                     if i==1:
-                        cordx=int(y)
+                        cordx=float(y)
                     if i==2:
-                        cordy=int(y)
+                        cordy=float(y)
                     i+=1
                 graf.add_node(node,cordx,cordy)
             if method=="edge":
