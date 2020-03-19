@@ -81,8 +81,8 @@ class main:
             graf.remove_node(self.node)
         if self.remove==True:
             self.clear_canvas_without_removing_graph()
-            self.draw_nodes()
             self.draw_edges()
+            self.draw_nodes()
             self.remove=False
             self.node=None
             self.selected=False
@@ -192,6 +192,13 @@ class main:
                     graf.times_has_been_drawn[node1+node2]=self.temp
                     graf.times_has_been_drawn[node2+node1]=self.temp
 
+    def draw_graph(self):
+        self.clear_canvas_without_removing_graph()
+        self.draw_edges()
+        self.draw_nodes()
+
+
+
 ###############################################
 
 ###############################################
@@ -239,9 +246,7 @@ class main:
                                             for l in range(self.new_y-10,self.new_y+10):
                                                 if l in graf.cordsY[keys]:
                                                     graf.add_edge_undirected(source,keys)
-                                                    self.clear_canvas_without_removing_graph()
-                                                    self.draw_nodes()
-                                                    self.draw_edges()
+                                                    self.draw_graph()
                                                     #self.c.create_line(graf.return_X(source),graf.return_Y(source),graf.return_Y(source),graf.return_X(keys),graf.return_X(keys),graf.return_Y(keys),width=1,fill="red",smooth=True)
                                                     #self.c.create_line(graf.cordsX[source],graf.cordsY[source],graf.cordsX[keys],graf.cordsY[keys],width=1,fill="red",arrow='last',capstyle=ROUND,smooth=True)
 
@@ -336,17 +341,14 @@ class main:
                     if int(keys)==1 or int(keys)==0:
                         graf.create_adj_matrix(index,keys)
                     else:
-                        print(keys)
                         self.matrix_error=True
                         break;
                 else:
-                    print(keys)
                     self.matrix_error=True
                     break;
         if self.matrix_error==False:
             graf.convert_adj_matrix(self.temp_NodeQuantity)
-            self.draw_nodes()
-            self.draw_edges()
+            self.draw_graph()
             self.matrix_window.destroy() # submits entered matrix into graph and draws it
         else:
             messagebox.showerror("Error", "Wrong data in matrix")
@@ -416,8 +418,7 @@ class main:
                     break;
         if self.matrix_error==False:
             graf.convert_inc_matrix(self.temp_NodeQuantity,self.temp_EdgeQuantity)
-            self.draw_nodes()
-            self.draw_edges()
+            self.draw_graph()
 
             self.matrix_window.destroy() # submits entered matrix into graph and draws it
         else:
@@ -571,8 +572,7 @@ class main:
                 for keys in self.adj_list_nodes[index]:
                     if index+index1==keys:
                         graf.add_edge_directed(index,index1)
-        self.draw_nodes()
-        self.draw_edges()
+        self.draw_graph()
         self.adj_list_nodes={}
         self.node_listbox.delete(0,END)
         self.edge_listbox_added_nodes.delete(0,END)
@@ -654,7 +654,7 @@ class main:
 ###############################################
 
 ###############################################
-######    Euler path/circle    ################
+######    Euler path/cycle    ################
 
     def printforall(self):
         graf.convert_to_adj_list()
@@ -700,8 +700,8 @@ class main:
             visited={}
             for index in graf.adj_list:
                 visited[index]=False
-            count2=self.Count(u,visited)
 
+            count2=self.Count(u,visited)
             self.addEdge(u,v)
 
             return False if count1 > count2 else True
@@ -725,18 +725,17 @@ class main:
         graf.adj_list[v].append(u)
 
 ###############################################
-######    Euler path/circle    ################
+######    Hamilton path/cycle    ##############
 
     def hamilton_test(self):
         self.iterations=0
         self.consistency=True
-        self.wtf=False
         self.path=[]
         self.longestPath=[]
         graph_len=len(graf.nodes)
         if graph_len < 2:
             print("Graph has one or fewer nodes")
-            self.wtf=True
+            self.consistency=False
         graf.convert_to_adj_list()
         visited={}
         for index in graf.adj_list:
@@ -745,18 +744,22 @@ class main:
             if len(graf.adj_list[index])<1:
                 self.consistency=False
                 break;
-        if self.consistency==True and self.wtf==False:
+        if self.consistency==True:
             u=list(graf.adj_list.keys())[0]
             self.isConsistent(visited, u)
         for index in visited:
             if visited[index]==False:
                 print("Graph isn't consistent")
-                self.wtf=True
+                self.consistency=False
                 break;
-        if self.wtf==False:
+        if self.consistency==True:
             self.path=[]
             self.pathvisited={}
             self.u=list(graf.adj_list.keys())[0]
+            for node in graf.nodes:
+                if len(graf.nodes[node])==1:
+                    self.u=node
+                    break;
             self.findPath(self.u)
 
     def isConsistent(self,visited,index):
@@ -769,7 +772,6 @@ class main:
         found=False
         self.tempstr=""
         self.path.append(index)
-        print("trasa dla path",self.path)
         for keys in self.path:
             self.tempstr+=str(keys)
         if len(self.path)>len(self.longestPath):
@@ -787,7 +789,7 @@ class main:
             self.pathvisited[self.tempstr].append(i)
             self.findPath(i)
         if found!=True:
-            if len(self.path)==len(graf.adj_list) and self.u in graf.adj_list[index] or self.iterations>150000:
+            if len(self.path)==len(graf.adj_list) and self.u in graf.adj_list[index]:
                 if self.u in graf.adj_list[index]:
                     if len(graf.nodes[self.u])>1:
                         self.path.append(self.u)
@@ -811,6 +813,86 @@ class main:
                     return 0
                 self.findPath(i)
 
+###############################################
+######    Breadth First Search   ##############
+
+    def BFS(self):
+        self.temp_string=""
+        s=self.dev_bfs_entry.get()    #### temporary solution
+        visited={}
+        graf.convert_to_adj_list()
+        for nodes in graf.adj_list:
+            visited[nodes]=False
+        queue=[]
+        queue.append(s)
+        visited[s]=True
+        while queue:
+            s=queue.pop(0)
+            self.temp_string+=str(s)
+            self.temp_string+="-"
+            for i in graf.adj_list[s]:
+                if visited[i]==False:
+                    queue.append(i)
+                    visited[i]=True
+        self.temp_string=self.temp_string[:-1]
+        print(self.temp_string)
+
+###############################################
+######    Depth First Search   ##############
+
+    def DFS(self):
+        self.temp_string=""
+        v=self.dev_dfs_entry.get()
+        visited={}
+        graf.convert_to_adj_list()
+        for node in graf.adj_list:
+            visited[node]=False
+        self.DFSfunction(v,visited)
+        self.temp_string=self.temp_string[:-1]
+        print(self.temp_string)
+
+    def DFSfunction(self,v,visited):
+        visited[v]=True
+        self.temp_string+=str(v)
+        self.temp_string+=("-")
+        for i in graf.adj_list[v]:
+            if visited[i]==False:
+                self.DFSfunction(i,visited)
+###############################################
+######### SEARCH for critcal edge #############
+
+    def critical_edge(self):
+        for node1 in graf.nodes:
+            for node2 in graf.nodes:
+                if node1+node2 in graf.edge_quantity:
+                    self.consistency=True
+                    graf.convert_to_adj_list()
+                    self.isitcritical(node1,node2)
+
+    def isitcritical(self,node1,node2):
+        visited={}
+        for nodes in graf.adj_list:
+            visited[nodes]=False
+        self.isConsistent(visited,node1)
+        for index in visited:
+            if visited[index]==False:
+                print("Graph isn't consistent")
+                self.consistency=False
+                break;
+        if self.consistency==True:
+            graf.remove_edge(node1,node2)
+            for nodes in graf.adj_list:
+                visited[nodes]=False
+            self.isConsistent(visited,node1)
+            for index in visited:
+                if visited[index]==False:
+                    print("Edge ", node1+node2," is critical")
+                    break;
+            graf.add_edge_undirected(node1,node2)
+
+
+
+
 
 
 
@@ -822,15 +904,11 @@ class main:
 
 
 
-
-
-
-
 ###############################################
 ###### Dev options ###########################
     def open_dev_window(self):
         self.dev_window= Tk()
-        self.dev_window.geometry("500x400")
+        self.dev_window.geometry("500x600")
         self.dev_window.attributes("-topmost",True)
         self.dev_window.title('Adajacency matrix')
         self.dev_window.resizable(False,False)
@@ -852,7 +930,23 @@ class main:
         self.dev_add_node_entry_cordX= Entry(self.dev_window_frame,width=4)
         self.dev_add_node_entry_cordY= Entry(self.dev_window_frame,width=4)
         self.dev_add_node_button_submit= Button(self.dev_window_frame,text="Submit", command=self.dev_add_node,width=4)
+        self.dev_add_edge_label=Label(self.dev_window_frame,text="ADD EDGE")
+        self.dev_add_edge_entry_node1= Entry(self.dev_window_frame,width=4)
+        self.dev_add_edge_entry_node2= Entry(self.dev_window_frame,width=4)
+        self.dev_add_edge_button_submit= Button(self.dev_window_frame,text="Submit", command=self.dev_add_edge,width=4)
+        self.dev_remove_edge_label=Label(self.dev_window_frame,text="REMOVE EDGE")
+        self.dev_remove_edge_entry_node1= Entry(self.dev_window_frame,width=4)
+        self.dev_remove_edge_entry_node2= Entry(self.dev_window_frame,width=4)
+        self.dev_remove_edge_button_submit= Button(self.dev_window_frame,text="Submit", command=self.dev_remove_edge,width=4)
         self.dev_hamilton= Button(self.dev_window_frame,text="Hamilton test", command=self.hamilton_test,width=15)
+        self.dev_bfs_label=Label(self.dev_window_frame,text="BFS")
+        self.dev_bfs_entry= Entry(self.dev_window_frame,width=4)
+        self.dev_bfs_button= Button(self.dev_window_frame,width=15,text="Submit", command=self.BFS)
+        self.dev_dfs_label=Label(self.dev_window_frame,text="DFS")
+        self.dev_dfs_entry= Entry(self.dev_window_frame,width=4)
+        self.dev_dfs_button= Button(self.dev_window_frame,width=15,text="Submit", command=self.DFS)
+        self.dev_critical_edges= Button(self.dev_window_frame,width=15,text="Critical Edges", command=self.critical_edge)
+        self.dev_draw_graph= Button(self.dev_window_frame,width=15,text="Draw graph", command=self.draw_graph)
 
         self.dev_print_grafnodes.grid(row=0,column=0)
         self.dev_print_cordsX.grid(row=1,column=0)
@@ -868,16 +962,44 @@ class main:
         self.dev_add_node_entry_cordX.grid(row=9,column=2)
         self.dev_add_node_entry_cordY.grid(row=9,column=3)
         self.dev_add_node_button_submit.grid(row=9,column=4)
-        self.dev_hamilton.grid(row=10,column=0)
-
+        self.dev_add_edge_label.grid(row=10,column=0)
+        self.dev_add_edge_entry_node1.grid(row=10,column=1)
+        self.dev_add_edge_entry_node2.grid(row=10,column=2)
+        self.dev_add_edge_button_submit.grid(row=10,column=3)
+        self.dev_remove_edge_label.grid(row=11,column=0)
+        self.dev_remove_edge_entry_node1.grid(row=11,column=1)
+        self.dev_remove_edge_entry_node2.grid(row=11,column=2)
+        self.dev_remove_edge_button_submit.grid(row=11,column=3)
+        self.dev_hamilton.grid(row=12,column=0)
+        self.dev_bfs_label.grid(row=13,column=0)
+        self.dev_bfs_entry.grid(row=13,column=1)
+        self.dev_bfs_button.grid(row=13,column=2)
+        self.dev_dfs_label.grid(row=14,column=0)
+        self.dev_dfs_entry.grid(row=14,column=1)
+        self.dev_dfs_button.grid(row=14,column=2)
+        self.dev_critical_edges.grid(row=15,column=0)
+        self.dev_draw_graph.grid(row=16,column=0)
 
         self.dev_window.mainloop()
 
     def dev_add_node(self):
-        if self.dev_add_node_entry_name.get() not in graf.nodes:
+        if self.dev_add_node_entry_name.get() not in graf.nodes and self.dev_add_node_entry_cordX.get() and self.dev_add_node_entry_cordY.get():
             graf.add_node(self.dev_add_node_entry_name.get(),self.dev_add_node_entry_cordX.get(),self.dev_add_node_entry_cordY.get())
-            self.draw_nodes()
-            self.draw_edges()
+            self.draw_graph()
+        else:
+            messagebox.showerror("Error", "NIE")
+
+    def dev_add_edge(self):
+        if self.dev_add_edge_entry_node1.get() in graf.nodes and self.dev_add_edge_entry_node2.get() in graf.nodes:
+            graf.add_edge_undirected(self.dev_add_edge_entry_node1.get(),self.dev_add_edge_entry_node2.get())
+            self.draw_graph()
+        else:
+            messagebox.showerror("Error", "NIE")
+
+    def dev_remove_edge(self):
+        if self.dev_remove_edge_entry_node1.get() and self.dev_remove_edge_entry_node2.get() and self.dev_remove_edge_entry_node2.get()+self.dev_remove_edge_entry_node1.get() in graf.edge_quantity:
+            graf.remove_edge(self.dev_remove_edge_entry_node1.get(),self.dev_remove_edge_entry_node2.get())
+            self.draw_graph()
         else:
             messagebox.showerror("Error", "NIE")
 
@@ -934,8 +1056,7 @@ class main:
                     i+=1
                 graf.add_edge_directed(node1,node2)
         f.close()
-        self.draw_nodes()
-        self.draw_edges()
+        self.draw_graph()
 
 
 

@@ -42,6 +42,38 @@ class Graf:
             if self.temp_node+index in self.edge_quantity:
                 del self.edge_quantity[self.temp_node+index]
 
+    def remove_edge(self,node1,node2):
+        remove_first=False
+        remove_second=False
+        temp_second_edgequantity_equal_one=False
+        temp_first_edgequantity_equal_one=False
+        for nodes in self.nodes:
+            i=0
+            for keys in self.nodes[nodes]:
+                if node1+node2==keys and nodes==node1 and remove_first==False:
+                    self.nodes[nodes].pop(i)
+                    remove_first=True
+                if node2+node1==keys and nodes==node2 and remove_second==False:
+                    self.nodes[nodes].pop(i)
+                    remove_second=True
+                i+=1
+        for edges in self.edge_quantity:
+            if node1+node2==edges:
+                if self.edge_quantity[edges]==1:
+                    temp_first_edgequantity_equal_one=True
+                else:
+                    self.edge_quantity[edges]-=1
+            if node2+node1==edges:
+                if self.edge_quantity[edges]==1:
+                    temp_second_edgequantity_equal_one=True
+                else:
+                    self.edge_quantity[edges]-=1
+        if temp_first_edgequantity_equal_one==True:
+            del self.edge_quantity[node1+node2]
+        if temp_second_edgequantity_equal_one==True:
+            del self.edge_quantity[node2+node1]
+            self.convert_to_adj_list()
+
     def add_edge_undirected(self, node_1, node_2, wage=1):
         node1=str(node_1)
         node2=str(node_2)
