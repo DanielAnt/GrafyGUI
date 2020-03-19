@@ -15,7 +15,6 @@ class Graf:
         self.edgeCordsY= {}
         self.times_has_been_drawn={}
 
-
     def add_node(self, node_1,cordX,cordY):
         node=str(node_1)
         self.nodes[node]=[]
@@ -23,8 +22,8 @@ class Graf:
             self.cordsX[node]=[]
         if node not in self.cordsY:
             self.cordsY[node]=[]
-        self.cordsX[node].append(cordX)
-        self.cordsY[node].append(cordY) # addes node with cordx and cordy
+        self.cordsX[node].append(int(cordX))
+        self.cordsY[node].append(int(cordY)) # addes node with cordx and cordy
 
     def remove_node(self,node_1): #removes node
         self.temp_node=str(node_1)
@@ -104,9 +103,6 @@ class Graf:
                     if index[0]+index[1] not in self.nodes[index[0]]:
                         self.add_edge_undirected(index[0],index[1]) #converts_matrix into graph
 
-    def print_adj_matrix(self):
-        print(self.adjacency_matrix) #prints adjacency_matrix
-
     def create_inc_matrix(self, index_1,keys):
         index=str(index_1)
         self.incidence_matrix[index]=[]
@@ -123,17 +119,14 @@ class Graf:
             node2=None
             for l in range(nodequantity):
                 index=str(l)+str(i)
-                for keys in self.incidence_matrix[index]:
-                    if int(keys)==1 and node1!=None:
-                        node2=str(l)
-                    if int(keys)==1 and node1==None:
-                        node1=str(l)
+                if self.incidence_matrix[index]==['1'] and node1!=None:
+                    node2=str(l)
+                if self.incidence_matrix[index]==['1'] and node1==None:
+                    node1=str(l)
                 if node1 and node2:
-                    if node1+node2 not in self.nodes[node1]:
-                        self.add_edge_undirected(node1,node2)
-
-    def print_inc_matrix(self):
-        print(self.incidence_matrix)
+                    self.add_edge_undirected(node1,node2)
+                    node1=None
+                    node2=None
 
     def clear_graph(self):
         self.__init__() #clear graph

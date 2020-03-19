@@ -47,48 +47,9 @@ class main:
 
 
         self.print=Canvas(self.master,height=400,width=300, bg=self.color_bg)
-
-
-
-
-        y=float(200)
-        x=float(500)
-        y1=float(501)
-        x1=float(500)
-        ymid=(y+y1)/2
-        xmid=(x+x1)/2
-        z=150
-
-
-        a1=-(x-x1)/(y-y1)
-
-        b1=ymid-xmid*a1
-
-
-
-        VarA=float((1+a1**2))
-        VarB=float(((-2)*xmid+2*a1*b1-2*a1*ymid))
-        VarC=float((xmid**2)+(b1**2)-2*b1*ymid+(ymid**2)-(z**2))
-
-
-        DELTA=VarB**2-4*VarA*VarC
-
-
-        X_wynik1=(-VarB+sqrt(DELTA))/(2*VarA)
-        X_wynik2=(-VarB-sqrt(DELTA))/(2*VarA)
-
-
-        Y_wynik1=a1*X_wynik1+b1
-        Y_wynik2=a1*X_wynik2+b1
-
-
-
         self.print.pack(side=LEFT,fill=Y,expand=False)
+
         self.c=Canvas(self.master,width=500,height=400,bg=self.color_bg,)
-
-
-        self.c.create_line(x,y,fabs(X_wynik1),fabs(Y_wynik1),x1,y1,smooth=True)
-
         self.c.pack(fill=BOTH,expand=True)
 
 
@@ -164,7 +125,6 @@ class main:
                     #self.c.create_line(graf.cordsX[node1],graf.cordsY[node1],graf.cordsX[node2],graf.cordsY[node2],width=1,fill="red",smooth=True)    #draw graph edges
                     self.create_line_arc(node1,node2)
 
-
     def print_graph(self):
         self.print.delete(ALL)
         self.text=graf.name
@@ -178,55 +138,59 @@ class main:
         self.print.create_text(50,200,fill="darkblue",font="Times 10 italic bold", text=self.text)   #prints graph on canvas
 
     def create_line_arc(self,node1,node2):
-        if graf.edge_quantity[node1+node2]==1:
-            self.c.create_line(graf.return_X(node1),graf.return_Y(node1),graf.return_X(node2),graf.return_Y(node2),width=1,fill="red",smooth=True)    #draw graph edges
-            self.temp=graf.times_has_been_drawn[node1+node2]
-            self.temp+=1
-            graf.times_has_been_drawn[node1+node2]=self.temp
-            graf.times_has_been_drawn[node2+node1]=self.temp
+        if node1==node2:
+            #self.c.create_oval(graf.return_X(node1)+25,graf.return_Y(node1)+25,graf.return_X(node1),graf.return_Y(node1))
+            self.c.create_line(graf.return_X(node1)+5,graf.return_Y(node1)+5,graf.return_X(node1),graf.return_Y(node1)-35,graf.return_X(node1)-35,graf.return_Y(node1)-35,graf.return_X(node1)-35,graf.return_Y(node1),graf.return_X(node2)+5,graf.return_Y(node2)+5,width=1,fill="red",smooth=True)    #draw graph edges
+
+
         else:
-            if graf.times_has_been_drawn[node1+node2] < graf.edge_quantity[node1+node2]:
-                ratio = graf.edge_quantity[node1+node2]-graf.times_has_been_drawn[node1+node2]
-                print("graf edge quantity",graf.edge_quantity[node1+node2])
-                print("graf.times_has_been_drawn",graf.times_has_been_drawn[node1+node2])
-                print(ratio)
-                if ratio<=2:
-                    z=50
-                if ratio>2 and ratio<=4:
-                    z=100
-                if ratio>4 and ratio<=6:
-                    z=150
-                if ratio>6 and ratio<=8:
-                    z=200
-                x=graf.return_X(node1)
-                y=graf.return_Y(node1)
-                x1=graf.return_X(node2)
-                y1=graf.return_Y(node2)
-                if x==x1:
-                    x+=1
-                if y==y1:
-                    y+=1
-                ymid=(y+y1)/2
-                xmid=(x+x1)/2
-                a1=-(x-x1)/(y-y1)
-                b1=ymid-xmid*a1
-                VarA=float((1+a1**2))
-                VarB=float(((-2)*xmid+2*a1*b1-2*a1*ymid))
-                VarC=float((xmid**2)+(b1**2)-2*b1*ymid+(ymid**2)-(z**2))
-                DELTA=float(VarB**2-4*VarA*VarC)
-                X_wynik1=float((-VarB+sqrt(DELTA))/(2*VarA))
-                X_wynik2=float((-VarB-sqrt(DELTA))/(2*VarA))
-                Y_wynik1=a1*X_wynik1+b1
-                Y_wynik2=a1*X_wynik2+b1
-                print("ile to ratio % 2 =", ratio%2)
-                if ratio % 2 == 0:
-                    self.c.create_line(graf.return_X(node1),graf.return_Y(node1),X_wynik1,Y_wynik1,graf.return_X(node2),graf.return_Y(node2),width=1,fill="red",smooth=True)    #draw graph edges
-                else:
-                    self.c.create_line(graf.return_X(node1),graf.return_Y(node1),X_wynik2,Y_wynik2,graf.return_X(node2),graf.return_Y(node2),width=1,fill="red",smooth=True)    #draw graph edges
+            if graf.edge_quantity[node1+node2]==1:
+                self.c.create_line(graf.return_X(node1),graf.return_Y(node1),graf.return_X(node2),graf.return_Y(node2),width=1,fill="red",smooth=True)    #draw graph edges
                 self.temp=graf.times_has_been_drawn[node1+node2]
                 self.temp+=1
                 graf.times_has_been_drawn[node1+node2]=self.temp
                 graf.times_has_been_drawn[node2+node1]=self.temp
+            else:
+                if graf.times_has_been_drawn[node1+node2] < graf.edge_quantity[node1+node2]:
+                    ratio = graf.edge_quantity[node1+node2]-graf.times_has_been_drawn[node1+node2]
+                    if ratio<=2:
+                        z=15
+                    if ratio>2 and ratio<=4:
+                        z=30
+                    if ratio>4 and ratio<=6:
+                        z=50
+                    if ratio>6 and ratio<=8:
+                        z=70
+                    if ratio>8:
+                        z=90
+                    x=graf.return_X(node1)
+                    y=graf.return_Y(node1)
+                    x1=graf.return_X(node2)
+                    y1=graf.return_Y(node2)
+                    if x==x1:
+                        x+=1
+                    if y==y1:
+                        y+=1
+                    ymid=(y+y1)/2
+                    xmid=(x+x1)/2
+                    a1=-(x-x1)/(y-y1)
+                    b1=ymid-xmid*a1
+                    VarA=float((1+a1**2))
+                    VarB=float(((-2)*xmid+2*a1*b1-2*a1*ymid))
+                    VarC=float((xmid**2)+(b1**2)-2*b1*ymid+(ymid**2)-(z**2))
+                    DELTA=float(VarB**2-4*VarA*VarC)
+                    X_wynik1=float((-VarB+sqrt(DELTA))/(2*VarA))
+                    X_wynik2=float((-VarB-sqrt(DELTA))/(2*VarA))
+                    Y_wynik1=a1*X_wynik1+b1
+                    Y_wynik2=a1*X_wynik2+b1
+                    if ratio % 2 == 0:
+                        self.c.create_line(graf.return_X(node1),graf.return_Y(node1),X_wynik1,Y_wynik1,graf.return_X(node2),graf.return_Y(node2),width=1,fill="red",smooth=True)    #draw graph edges
+                    else:
+                        self.c.create_line(graf.return_X(node1),graf.return_Y(node1),X_wynik2,Y_wynik2,graf.return_X(node2),graf.return_Y(node2),width=1,fill="red",smooth=True)    #draw graph edges
+                    self.temp=graf.times_has_been_drawn[node1+node2]
+                    self.temp+=1
+                    graf.times_has_been_drawn[node1+node2]=self.temp
+                    graf.times_has_been_drawn[node2+node1]=self.temp
 
 ###############################################
 
@@ -562,13 +526,16 @@ class main:
 
     def graph_adj_list_add_edge(self):
         if self.edge_listbox_available_nodes.get(ANCHOR): #checks if good listentry is selected
-            if self.edge_listbox_available_nodes.get(ANCHOR) not in self.adj_list_nodes[self.temp_chosen_node]: #checks if given edge is already in graph
-                for index in self.adj_list_nodes: #adds given edge do graph
-                    for index1 in self.adj_list_nodes:
-                        if index+index1==self.edge_listbox_available_nodes.get(ANCHOR):
-                            if self.edge_listbox_available_nodes.get(ANCHOR) not in self.adj_list_nodes[self.temp_chosen_node]:
-                                self.adj_list_nodes[index].append(index+index1)
-                                self.adj_list_nodes[index1].append(index1+index)
+        #    if self.edge_listbox_available_nodes.get(ANCHOR) not in self.adj_list_nodes[self.temp_chosen_node]: #checks if given edge is already in graph
+            i=0
+            for index in self.adj_list_nodes: #adds given edge do graph
+                for index1 in self.adj_list_nodes:
+                    if index+index1==self.edge_listbox_available_nodes.get(ANCHOR):
+                #        if self.edge_listbox_available_nodes.get(ANCHOR) not in self.adj_list_nodes[self.temp_chosen_node]:
+                        if i==0:
+                            self.adj_list_nodes[index].append(index+index1)
+                            self.adj_list_nodes[index1].append(index1+index)
+                            i+=1
             self.display_edge_listbox_added_nodes()
             self.display_edge_listbox_available_nodes()
 
@@ -599,10 +566,11 @@ class main:
         for index in self.adj_list_nodes:
             graf.add_node(index,round(sin(2*pi/nodequantity*i)*radius+225,0),round(cos(2*pi/nodequantity*i)*radius+225,0))
             i+=1
+        for index in self.adj_list_nodes:
             for index1 in self.adj_list_nodes:
                 for keys in self.adj_list_nodes[index]:
                     if index+index1==keys:
-                        graf.add_edge_undirected(index,index1)
+                        graf.add_edge_directed(index,index1)
         self.draw_nodes()
         self.draw_edges()
         self.adj_list_nodes={}
@@ -624,8 +592,8 @@ class main:
         for index in self.adj_list_nodes: # display available edges
             if self.temp_chosen_node==index:
                 for index2 in self.adj_list_nodes:
-                    if index!=index2 and index+index2 not in self.adj_list_nodes[index]:
-                        self.edge_listbox_available_nodes.insert(END, index+index2)
+                    #if index!=index2 and index+index2 not in self.adj_list_nodes[index]:
+                    self.edge_listbox_available_nodes.insert(END, index+index2)
 
 #### Import graf into  adj list ######
 
@@ -686,20 +654,23 @@ class main:
 ###############################################
 
 ###############################################
+######    Euler path/circle    ################
 
     def printforall(self):
-        u="A"
+        graf.convert_to_adj_list()
+        u=list(graf.adj_list.keys())[0]
         if self.eulerian_test()==1 or self.eulerian_test()==2:
-            if self.eulerian_test()==1:
+            if self.eulerian_test()==1 and len(graf.edge_quantity)>0:
                 print("cykl")
-            if self.eulerian_test()==2:
+            if self.eulerian_test()==2 and len(graf.edge_quantity)>0:
                 print("ścieżka")
             for i in graf.adj_list:
                 if len(graf.adj_list[i]) %2 != 0:
                     u=i
                     break
             self.printEuler(u)
-
+        else:
+            print("Graf nie ma cyklu ani ścieżki eulera")
 
     def printEuler(self,u):
         for v in graf.adj_list[u]:
@@ -753,9 +724,113 @@ class main:
         graf.adj_list[u].append(v)
         graf.adj_list[v].append(u)
 
+###############################################
+######    Euler path/circle    ################
+
+    def hamilton_test(self):
+        self.iterations=0
+        self.consistency=True
+        self.wtf=False
+        self.path=[]
+        self.longestPath=[]
+        graph_len=len(graf.nodes)
+        if graph_len < 2:
+            print("Graph has one or fewer nodes")
+            self.wtf=True
+        graf.convert_to_adj_list()
+        visited={}
+        for index in graf.adj_list:
+            visited[index]=False
+        for index in graf.adj_list:
+            if len(graf.adj_list[index])<1:
+                self.consistency=False
+                break;
+        if self.consistency==True and self.wtf==False:
+            u=list(graf.adj_list.keys())[0]
+            self.isConsistent(visited, u)
+        for index in visited:
+            if visited[index]==False:
+                print("Graph isn't consistent")
+                self.wtf=True
+                break;
+        if self.wtf==False:
+            self.path=[]
+            self.pathvisited={}
+            self.u=list(graf.adj_list.keys())[0]
+            self.findPath(self.u)
+
+    def isConsistent(self,visited,index):
+        visited[index]=True
+        for i in graf.adj_list[index]:
+            if visited[i]==False:
+                self.isConsistent(visited,i)
+
+    def findPath(self,index):
+        found=False
+        self.tempstr=""
+        self.path.append(index)
+        print("trasa dla path",self.path)
+        for keys in self.path:
+            self.tempstr+=str(keys)
+        if len(self.path)>len(self.longestPath):
+            self.longestPath=[]
+            for keys in self.path:
+                self.longestPath.append(keys)
+        if self.tempstr not in self.pathvisited:
+            self.pathvisited[self.tempstr]=[]
+        for i in graf.adj_list[index]:
+            if i not in self.path:
+                if i not in self.pathvisited[self.tempstr]:
+                    found=True
+                    break;
+        if found==True:
+            self.pathvisited[self.tempstr].append(i)
+            self.findPath(i)
+        if found!=True:
+            if len(self.path)==len(graf.adj_list) and self.u in graf.adj_list[index] or self.iterations>150000:
+                if self.u in graf.adj_list[index]:
+                    if len(graf.nodes[self.u])>1:
+                        self.path.append(self.u)
+                        print("Found cycle")
+                    else:
+                        print("Found path")
+                    print(self.path)
+                    return 0
+                else:
+                    print("Longest path")
+                    print(self.longestPath)
+                    return 0
+            else:
+                self.iterations+=1
+                h=self.path.pop()
+                try:
+                    i=self.path.pop()
+                except (IndexError):
+                    print("Longest path")
+                    print(self.longestPath)
+                    return 0
+                self.findPath(i)
+
+
+
+
+
+    #    if self.path
+    #    self.path.pop()
+    #    self.isConsistent(visited,self.path.pop())
+
+
+
+
+
+
+
+
+###############################################
+###### Dev options ###########################
     def open_dev_window(self):
         self.dev_window= Tk()
-        self.dev_window.geometry("200x350")
+        self.dev_window.geometry("500x400")
         self.dev_window.attributes("-topmost",True)
         self.dev_window.title('Adajacency matrix')
         self.dev_window.resizable(False,False)
@@ -766,13 +841,18 @@ class main:
         self.dev_print_grafnodes= Button(self.dev_window_frame,text="Print GRAF.NODES",command=lambda: print(graf.nodes))
         self.dev_print_cordsX= Button(self.dev_window_frame,text="Print cordsX",command=lambda: print(graf.cordsX) )
         self.dev_print_cordsY= Button(self.dev_window_frame,text="Print cordsY",command=lambda: print(graf.cordsY))
-        self.dev_print_edge_quantity= Button(self.dev_window_frame,text="Print cordsY",command=lambda: print(graf.edge_quantity))
+        self.dev_print_edge_quantity= Button(self.dev_window_frame,text="Print edge quantity",command=lambda: print(graf.edge_quantity))
         self.dev_print_adjacencymatrix= Button(self.dev_window_frame,text="Print adjacencymatrix",command=lambda: print(graf.adjacency_matrix))
         self.dev_print_incidencematrix= Button(self.dev_window_frame,text="Print incmatrix",command=lambda: print(graf.incidence_matrix))
         self.dev_print_euler= Button(self.dev_window_frame,text="Eulerian Test",command=self.eulerian_test)
         self.dev_print_adj_list= Button(self.dev_window_frame,text="Print adj_list",command=lambda: print(graf.adj_list))
         self.dev_print_euler_cycles= Button(self.dev_window_frame,text="Eulerian cycles/paths",command=self.printforall)
-
+        self.dev_add_node_label=Label(self.dev_window_frame,text="ADD NODE")
+        self.dev_add_node_entry_name= Entry(self.dev_window_frame,width=4)
+        self.dev_add_node_entry_cordX= Entry(self.dev_window_frame,width=4)
+        self.dev_add_node_entry_cordY= Entry(self.dev_window_frame,width=4)
+        self.dev_add_node_button_submit= Button(self.dev_window_frame,text="Submit", command=self.dev_add_node,width=4)
+        self.dev_hamilton= Button(self.dev_window_frame,text="Hamilton test", command=self.hamilton_test,width=15)
 
         self.dev_print_grafnodes.grid(row=0,column=0)
         self.dev_print_cordsX.grid(row=1,column=0)
@@ -783,9 +863,23 @@ class main:
         self.dev_print_adj_list.grid(row=6,column=0)
         self.dev_print_euler.grid(row=7,column=0)
         self.dev_print_euler_cycles.grid(row=8,column=0)
+        self.dev_add_node_label.grid(row=9,column=0)
+        self.dev_add_node_entry_name.grid(row=9,column=1)
+        self.dev_add_node_entry_cordX.grid(row=9,column=2)
+        self.dev_add_node_entry_cordY.grid(row=9,column=3)
+        self.dev_add_node_button_submit.grid(row=9,column=4)
+        self.dev_hamilton.grid(row=10,column=0)
 
 
         self.dev_window.mainloop()
+
+    def dev_add_node(self):
+        if self.dev_add_node_entry_name.get() not in graf.nodes:
+            graf.add_node(self.dev_add_node_entry_name.get(),self.dev_add_node_entry_cordX.get(),self.dev_add_node_entry_cordY.get())
+            self.draw_nodes()
+            self.draw_edges()
+        else:
+            messagebox.showerror("Error", "NIE")
 
     def save(self):
         graf.convert_to_adj_list()
@@ -851,8 +945,8 @@ class main:
 if __name__ == '__main__':
 
     def on_closing():
-        if messagebox.askokcancel("Quit", "Do you want to quit?"):
-            quit()
+    #    if messagebox.askokcancel("Quit", "Do you want to quit?"):
+        quit()
 
 
     graf= Graf()
