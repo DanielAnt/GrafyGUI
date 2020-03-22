@@ -27,7 +27,7 @@ class Graf:
 
     def change_wage(self,node1,node2,wage):
         if node1+node2 in self.edge_wage:
-            self.edge_wage[node1+node2]=wage
+            self.edge_wage[str(node1)+str(node2)]=int(wage)
 
     def remove_node(self,node_1): #removes node
         self.temp_node=str(node_1)
@@ -127,11 +127,11 @@ class Graf:
         self.adjacency_matrix[index]=[]
         self.adjacency_matrix[index].append(keys) #takes adj_matrix from GUI class and pass it to self.adjacency_matrix
 
-    def convert_adj_matrix(self,nodequantity):
-        radius=150 if nodequantity > 5 else 100 # adjust radius of circle that the graph is drawn on depending on nodequantity
+    def convert_adj_matrix(self,nodequantity,draw_ratio_var=1):
+        radius=150*(draw_ratio_var-1) if nodequantity > 5 else 100*(draw_ratio_var-1) # adjust radius of circle that the graph is drawn on depending on nodequantity
         i=0
         for name in range(nodequantity):
-            self.add_node(name,round(sin(2*pi/nodequantity*i)*radius+225),round(cos(2*pi/nodequantity*i)*radius+225))
+            self.add_node(name,round(sin(2*pi/nodequantity*i)*radius+(225+(draw_ratio_var-1)*80)),round(cos(2*pi/nodequantity*i)*radius+(225+(draw_ratio_var-1)*80)))
             i+=1
         for index in self.adjacency_matrix:
             for keys in self.adjacency_matrix[index]:
@@ -144,11 +144,11 @@ class Graf:
         self.incidence_matrix[index]=[]
         self.incidence_matrix[index].append(keys)
 
-    def convert_inc_matrix(self, nodequantity, edgequantity):
-        radius=150 if nodequantity > 5 else 100 # adjust radius of circle that the graph is drawn on depending on nodequantity
+    def convert_inc_matrix(self, nodequantity, edgequantity,draw_ratio_var=1):
+        radius=150*(draw_ratio_var-1) if nodequantity > 5 else 100*(draw_ratio_var-1) # adjust radius of circle that the graph is drawn on depending on nodequantity
         i=0
         for name in range(nodequantity):
-            self.add_node(name,round(sin(2*pi/nodequantity*i)*radius+225,0),round(cos(2*pi/nodequantity*i)*radius+225,0))
+            self.add_node(name,round(sin(2*pi/nodequantity*i)*radius+(225+(draw_ratio_var-1)*80)),round(cos(2*pi/nodequantity*i)*radius+(225+(draw_ratio_var-1)*80)))
             i+=1
         for i in range(edgequantity):
             node1=None

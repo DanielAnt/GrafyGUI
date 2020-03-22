@@ -14,9 +14,11 @@ class main:
         self.master = master
         self.color_fg = 'black'
         self.color_bg = 'white'
+        self.draw_ratio=int(3)
         self.switch_variable = StringVar(value="")
         self.selected=False
         self.remove=False
+        self.showcords=IntVar()
         self.entry={}
         self.adj_list_nodes={}
         self.drawWidgets()
@@ -33,7 +35,7 @@ class main:
         self.select_button = Radiobutton(self.buttons, text="Select",variable=self.switch_variable,indicatoron=False, value="select", height=1)
         self.removeNode_button = Button(self.buttons, text="Remove Node", command=self.remove_node, height=1)
         self.unEdge_button = Radiobutton(self.buttons, text="UnEdge",variable=self.switch_variable,indicatoron=False, value="drawUndirected", height=1)
-        self.edge_wage_entry= Entry(self.buttons,width=2,justify=RIGHT)
+        self.edge_wage_entry= Entry(self.buttons,width=5,justify=RIGHT)
         self.directedEdge_button = Radiobutton(self.buttons, text="directedEdge",variable=self.switch_variable,indicatoron=False, value="drawDirected", height=1)
         self.buttonPrint= Button(self.buttons,text = "Print", command= self.print_graph, height=1)
         self.draw_graph_button= Button(self.buttons,width=10,text="Draw graph", command=self.draw_graph)
@@ -45,7 +47,7 @@ class main:
         self.draw_Entry.pack(side="left",fill=Y, expand=True)
         self.draw_button.pack(side="left",fill=Y, expand=True)
         self.removeNode_button.pack(side="left",fill=Y, expand=True)
-        self.edge_wage_entry.pack(side="left")
+        self.edge_wage_entry.pack(side="left",fill=Y, expand=True)
         self.unEdge_button.pack(side="left",fill=Y, expand=True)
         self.directedEdge_button.pack(side="left",fill=Y, expand=True)
         self.select_button.pack(side="left",fill=Y, expand=True)
@@ -61,15 +63,19 @@ class main:
 
         self.c=Canvas(self.master,width=500,height=400,bg=self.color_bg,)
         self.c.pack(fill=BOTH,expand=True)
+    #    self.c.bind("<Motion>",self.moved)
+#        self.tag=self.c.create_text(10,10, text="", anchor="nw")
+
 
 
         self.menu = Menu(self.master)
         self.master.config(menu=self.menu)
         self.graphmenu= Menu(self.menu)
         self.menu.add_cascade(label='Add graph', menu=self.graphmenu)
-        self.graphmenu.add_command(label='Macierz sąsiedzctwa',command=self.graph_add_adj)
-        self.graphmenu.add_command(label='Macierz incydencji',command=self.graph_add_inc)
-        self.graphmenu.add_command(label='Macierz lista sąsiedzctwa',command=self.graph_add_adjlist)
+        self.graphmenu.add_command(label='Adjacency matrix',command=self.graph_add_adj)
+        self.graphmenu.add_command(label='Incidence matrix',command=self.graph_add_inc)
+        self.graphmenu.add_command(label='Adjacency list',command=self.graph_add_adjlist)
+        self.graphmenu.add_command(label='Type in',command=self.type_in)
         self.optionmenu = Menu(self.menu)
         self.menu.add_cascade(label='Options',menu=self.optionmenu)
         self.optionmenu.add_command(label='Clear',command=self.clear_canvas)
@@ -83,7 +89,10 @@ class main:
         self.file.add_command(label='Load',command=self.load)
 
 
-
+    #def moved(self,event):
+    #    print(self.showcords.get())
+    #    if self.showcords.get()==1:
+    #        self.c.itemconfigure(self.print, text=(event.x,event.y))
 
     def remove_node(self):
         if self.selected==True:
@@ -120,6 +129,7 @@ class main:
 
 ###############################################
 #########Display Methods######################
+
     def draw_nodes(self):
         for source in graf.nodes:
             self.c.create_image(graf.return_X(source),graf.return_Y(source), image=photo)
@@ -263,7 +273,6 @@ class main:
         self.draw_nodes()
 
 
-
 ###############################################
 
 ###############################################
@@ -277,7 +286,7 @@ class main:
     def reset(self,e):
 
         if self.tool=="draw":
-            if e.x==self.old_x and e.y==self.old_y:
+            if e.x>self.old_x-10 and e.x<self.old_x+10 and e.y>self.old_y-10 and e.y<self.old_y+10:
                 if not self.draw_Entry.get():
                     messagebox.showerror("Error", "You need to enter a letter")
                 else:
@@ -291,7 +300,6 @@ class main:
                                 messagebox.showerror("Error", "You can't place two nodes in the same place")
                         if self.exist==False:
                             graf.add_node(self.draw_Entry.get(),self.new_x, self.new_y)
-                            #self.c.create_line(self.new_x,self.new_y,self.new_x,self.new_y,width=10,fill="black",capstyle=ROUND,smooth=True)
                             self.c.create_image(self.new_x,self.new_y, image=photo)
                             self.c.create_text(self.new_x+10,self.new_y-15,fill="darkblue",font="Times 10 italic bold", text=self.draw_Entry.get())
                     else:
@@ -300,48 +308,40 @@ class main:
         if self.tool=="drawUndirected":
             self.new_x=e.x
             self.new_y=e.y
+            start_node=None
+            end_node=None
             for source in graf.cordsX:
-                for i in range(self.old_x-10,self.old_x+10):
-                    if i in graf.cordsX[source]:
-                        for k in range(self.old_y-20,self.old_y+20):
-                            if k in graf.cordsY[source]:
-                                for keys in graf.cordsX:
-                                    for j in range(self.new_x-10,self.new_x+10):
-                                        if j in graf.cordsX[keys]:
-                                            for l in range(self.new_y-10,self.new_y+10):
-                                                if l in graf.cordsY[keys]:
-                                                    if self.edge_wage_entry.get() and self.edge_wage_entry.get().isnumeric():
-                                                        if self.edge_wage_entry.get().isnumeric:
-                                                            graf.add_edge_undirected(source,keys,self.edge_wage_entry.get())
-                                                            self.draw_graph()
-                                                        else:
-                                                            messagebox.showerror("Error", "Edge wage must be numeric")
-                                                    else:
-                                                        graf.add_edge_undirected(source,keys)
-                                                        self.draw_graph()
-
-
-                                                    #self.c.create_line(graf.return_X(source),graf.return_Y(source),graf.return_Y(source),graf.return_X(keys),graf.return_X(keys),graf.return_Y(keys),width=1,fill="red",smooth=True)
-                                                    #self.c.create_line(graf.cordsX[source],graf.cordsY[source],graf.cordsX[keys],graf.cordsY[keys],width=1,fill="red",arrow='last',capstyle=ROUND,smooth=True)
+                if list(graf.cordsX[source])[0]>self.old_x-10 and list(graf.cordsX[source])[0]<self.old_x+10 and list(graf.cordsY[source])[0]>self.old_y-10 and list(graf.cordsY[source])[0]<self.old_y+10:
+                    start_node=source
+                if list(graf.cordsX[source])[0]>self.new_x-10 and list(graf.cordsX[source])[0]<self.new_x+10 and list(graf.cordsY[source])[0]>self.new_y-10 and list(graf.cordsY[source])[0]<self.new_y+10:
+                    end_node=source
+            if start_node!=None and end_node!=None:
+                if self.edge_wage_entry.get() and self.edge_wage_entry.get().isnumeric():
+                    if self.edge_wage_entry.get().isnumeric:
+                        graf.add_edge_undirected(start_node,end_node,self.edge_wage_entry.get())
+                        self.draw_graph()
+                    else:
+                        messagebox.showerror("Error", "Edge wage must be numeric")
+                else:
+                    graf.add_edge_undirected(start_node,end_node)
+                    self.draw_graph()
 
 
         if self.tool=="drawDirected":
             self.new_x=e.x
             self.new_y=e.y
+            start_node=None
+            end_node=None
             for source in graf.cordsX:
-                for i in range(self.old_x-10,self.old_x+10):
-                    if i in graf.cordsX[source]:
-                        for k in range(self.old_y-20,self.old_y+20):
-                            if k in graf.cordsY[source]:
-                                for keys in graf.cordsX:
-                                    for j in range(self.new_x-10,self.new_x+10):
-                                        if j in graf.cordsX[keys]:
-                                            for l in range(self.new_y-10,self.new_y+10):
-                                                if l in graf.cordsY[keys]:
-                                                    #self.c.create_line(graf.cordsX[source],graf.cordsY[source],graf.cordsX[keys],graf.cordsY[keys],width=1,fill="red",smooth=True)
-                                                    self.c.create_line(graf.return_X(source),graf.return_Y(source),graf.return_X(keys),graf.return_Y(keys),width=1,fill="red",arrow='last',capstyle=ROUND,smooth=True)
-                                                    graf.add_edge_directed(source,keys)
-                                                    self.draw_graph()
+                if list(graf.cordsX[source])[0]>self.old_x-10 and list(graf.cordsX[source])[0]<self.old_x+10 and list(graf.cordsY[source])[0]>self.old_y-10 and list(graf.cordsY[source])[0]<self.old_y+10:
+                    start_node=source
+                if list(graf.cordsX[source])[0]>self.new_x-10 and list(graf.cordsX[source])[0]<self.new_x+10 and list(graf.cordsY[source])[0]>self.new_y-10 and list(graf.cordsY[source])[0]<self.new_y+10:
+                    end_node=source
+            if start_node!=None and end_node!=None:
+                graf.add_edge_directed(start_node,end_node)
+                self.draw_graph()
+
+
         if self.tool=="select":
             self.new_x=e.x
             self.new_y=e.y
@@ -366,7 +366,8 @@ class main:
 #####ADDING GRAPH BY ADJACENCY MATRIX#########
 
     def graph_add_adj(self):
-        self.graph_add_window = Tk()
+        self.graph_add_window = Toplevel()
+        self.graph_add_window.grab_set()
         self.graph_add_window.attributes("-topmost",True)
         self.graph_add_window.title('Adajacency matrix')
         self.frame_one=Frame(self.graph_add_window,width=100,height=500,borderwidth=2,relief='sunken')
@@ -377,12 +378,12 @@ class main:
         self.nodeQuantity_Label.pack(side=TOP)
         self.nodeQuantity_Entry.pack(side=TOP)
         self.nodeQuantity_Button.pack(side=TOP)
-        self.graph_add_window.mainloop() #opens new window and ask for number of nodes for adjacency matrix
 
     def NodeQuantity_Submit(self):
         if self.nodeQuantity_Entry.get().isnumeric():
             self.temp_NodeQuantity=int(self.nodeQuantity_Entry.get())
-            self.matrix_window=Tk()
+            self.matrix_window= Toplevel()
+            self.matrix_window.grab_set()
             self.matrix_window.attributes("-topmost",True)
             self.matrix_window.title("Adjacency matrix")
             self.graph_add_window.destroy()
@@ -402,7 +403,6 @@ class main:
                     self.entry_matrix[index]=matrix_entry
             self.adjacency_matrix_submit= Button(self.frame_two, width=15,text="Submit",command=self.matrix_adj_submit)
             self.adjacency_matrix_submit.pack(side=TOP)
-            self.graph_add_window.mainloop()
         else:
             messagebox.showerror("Error", "You need to enter a number") #submits the number from graph_add_adj entry
 
@@ -421,7 +421,7 @@ class main:
                     self.matrix_error=True
                     break;
         if self.matrix_error==False:
-            graf.convert_adj_matrix(self.temp_NodeQuantity)
+            graf.convert_adj_matrix(self.temp_NodeQuantity,self.draw_ratio)
             self.draw_graph()
             self.matrix_window.destroy() # submits entered matrix into graph and draws it
         else:
@@ -433,7 +433,8 @@ class main:
 #######ADDING GRAPH BY INCIDENCE MATRIX #######
 
     def graph_add_inc(self):
-        self.graph_add_window = Tk()
+        self.graph_add_window = Toplevel()
+        self.graph_add_window.grab_set()
         self.graph_add_window.attributes("-topmost",True)
         self.graph_add_window.title('Incidence matrix')
         self.frame_one=Frame(self.graph_add_window,width=100,height=500,borderwidth=2,relief='sunken')
@@ -448,13 +449,13 @@ class main:
         self.edgeQuantity_Label.pack(side=TOP)
         self.edgeQuantity_Entry.pack(side=TOP)
         self.Quantity_Button.pack(side=TOP,pady=5)
-        self.graph_add_window.mainloop() #opens new window and ask for number of nodes and edges for incidence matrix
 
     def Quantity_Submit(self):
         if self.nodeQuantity_Entry.get().isnumeric() and self.edgeQuantity_Entry.get().isnumeric():
             self.temp_NodeQuantity=int(self.nodeQuantity_Entry.get())
             self.temp_EdgeQuantity=int(self.edgeQuantity_Entry.get())
-            self.matrix_window=Tk()
+            self.matrix_window= Toplevel()
+            self.matrix_window.grab_set()
             self.matrix_window.attributes("-topmost",True)
             self.matrix_window.title("Adjacency matrix")
             self.graph_add_window.destroy()
@@ -474,7 +475,6 @@ class main:
                     self.entry_matrix[index]=matrix_entry
             self.adjacency_matrix_submit= Button(self.frame_two, width=15,text="Submit",command=self.matrix_inc_submit)
             self.adjacency_matrix_submit.pack(side=TOP)
-            self.matrix_window.mainloop() # submits the data from graph_add_inc
 
     def matrix_inc_submit(self):
         self.clear_canvas()
@@ -491,7 +491,7 @@ class main:
                     self.matrix_error=True
                     break;
         if self.matrix_error==False:
-            graf.convert_inc_matrix(self.temp_NodeQuantity,self.temp_EdgeQuantity)
+            graf.convert_inc_matrix(self.temp_NodeQuantity,self.temp_EdgeQuantity,self.draw_ratio)
             self.draw_graph()
 
             self.matrix_window.destroy() # submits entered matrix into graph and draws it
@@ -506,7 +506,8 @@ class main:
 
     def graph_add_adjlist(self):
         #window
-        self.graph_adj_list = Tk()
+        self.graph_adj_list = Toplevel()
+        self.graph_adj_list.grab_set()
         self.graph_adj_list.geometry("285x280")
         self.graph_adj_list.resizable(False,False)
         self.graph_adj_list.attributes("-topmost",True)
@@ -558,8 +559,6 @@ class main:
         self.edge_add_button.grid(row=1,column=0)
         self.edge_listbox_added_nodes.grid(row=2,column=0)
         self.edge_remove_button.grid(row=3,column=0)
-
-        self.graph_adj_list.mainloop()
 
     def graph_adj_list_add_node(self):
         if self.node_list_entry.get():      # checks if there an entry
@@ -636,10 +635,10 @@ class main:
     def graph_adj_list_submit(self):  # submits input data into graph and then draws it
         self.clear_canvas()
         nodequantity=len(self.adj_list_nodes)
-        radius=150 if nodequantity > 5 else 100 # adjust radius of circle that the graph is drawn on depending on nodequantity
+        radius=150*self.draw_ratio if nodequantity > 5 else 100*self.draw_ratio # adjust radius of circle that the graph is drawn on depending on nodequantity
         i=0
         for index in self.adj_list_nodes:
-            graf.add_node(index,round(sin(2*pi/nodequantity*i)*radius+225,0),round(cos(2*pi/nodequantity*i)*radius+225,0))
+            graf.add_node(index,round(sin(2*pi/nodequantity*i)*radius+(225+(self.draw_ratio-1)*50)),round(cos(2*pi/nodequantity*i)*radius+(225+(self.draw_ratio-1)*50)))
             i+=1
         for index in self.adj_list_nodes:
             for index1 in self.adj_list_nodes:
@@ -680,7 +679,164 @@ class main:
 
         for index in self.adj_list_nodes:
             self.node_listbox.insert(END,index)
-        print(self.adj_list_nodes)
+###############################################
+
+###############################################
+############### Type in #######################
+
+    def type_in(self):
+        self.type_in_window= Toplevel()
+        self.type_in_window.grab_set()
+        self.type_in_window.attributes("-topmost",True)
+        self.type_in_window.title('Type in functions')
+        self.type_in_window.resizable(False,False)
+        self.type_in_frame= Frame(self.type_in_window)
+        self.type_in_frame.pack(fill=BOTH, expand=False)
+
+        ##### ADD NODE ##########
+        self.type_in_add_node_label=Label(self.type_in_frame,text="ADD NODE")
+        self.type_in_add_node_label_node=Label(self.type_in_frame,text="Node")
+        self.type_in_add_node_label_cordX=Label(self.type_in_frame,text="Cord X")
+        self.type_in_add_node_label_cordY=Label(self.type_in_frame,text="Cord Y")
+        self.type_in_add_node_entry_name= Entry(self.type_in_frame,width=8)
+        self.type_in_add_node_entry_cordX= Entry(self.type_in_frame,width=8)
+        self.type_in_add_node_entry_cordY= Entry(self.type_in_frame,width=8)
+        self.type_in_add_node_button_submit= Button(self.type_in_frame,text="Submit", command=self.type_in_add_node,width=4)
+
+        ##### ADD EDGE ##########
+        self.type_in_add_edge_label=Label(self.type_in_frame,text="ADD EDGE")
+        self.type_in_add_edge_label_node1=Label(self.type_in_frame,text="Node")
+        self.type_in_add_edge_label_node2=Label(self.type_in_frame,text="Node")
+        self.type_in_add_edge_label_wage=Label(self.type_in_frame,text="Wage")
+        self.type_in_add_edge_entry_node1= Entry(self.type_in_frame,width=8)
+        self.type_in_add_edge_entry_node2= Entry(self.type_in_frame,width=8)
+        self.type_in_add_edge_entry_wage= Entry(self.type_in_frame,width=8)
+        self.type_in_add_edge_button_submit= Button(self.type_in_frame,text="Submit", command=self.type_in_add_edge,width=4)
+
+        ### REMOVE NODE ########
+        self.type_in_remove_node_label=Label(self.type_in_frame,text="REMOVE NODE")
+        self.type_in_remove_node_label_node=Label(self.type_in_frame,text="Node")
+        self.type_in_remove_node_entry= Entry(self.type_in_frame,width=8)
+        self.type_in_remove_node_button_submit= Button(self.type_in_frame,text="Submit", command=self.type_in_remove_node,width=4)
+
+        #### REMOVE EDGE ########
+        self.type_in_remove_edge_label=Label(self.type_in_frame,text="REMOVE EDGE")
+        self.type_in_remove_edge_label.node1=Label(self.type_in_frame,text="Node")
+        self.type_in_remove_edge_label.node2=Label(self.type_in_frame,text="Node")
+        self.type_in_remove_edge_entry_node1= Entry(self.type_in_frame,width=8)
+        self.type_in_remove_edge_entry_node2= Entry(self.type_in_frame,width=8)
+        self.type_in_remove_edge_button_submit= Button(self.type_in_frame,text="Submit", command=self.type_in_remove_edge,width=4)
+
+        ### CHANGE WAGE #######
+        self.type_in_change_wage_label=Label(self.type_in_frame,text="CHANGE WAGE")
+        self.type_in_change_wage_label_node1=Label(self.type_in_frame,text="Node")
+        self.type_in_change_wage_label_node2=Label(self.type_in_frame,text="Node")
+        self.type_in_change_wage_label_wage=Label(self.type_in_frame,text="Wage")
+        self.type_in_change_wage_entry_node1= Entry(self.type_in_frame,width=8)
+        self.type_in_change_wage_entry_node2= Entry(self.type_in_frame,width=8)
+        self.type_in_change_wage_entry_wage= Entry(self.type_in_frame,width=8)
+        self.type_in_change_wage_button_submit= Button(self.type_in_frame,text="Submit", command=self.type_in_change_wage,width=4)
+
+        n=0
+        ##### ADD NODE GRID ##########
+        self.type_in_add_node_label.grid(row=n+1 ,column=0 )
+        self.type_in_add_node_label_node.grid(row=n ,column=1 )
+        self.type_in_add_node_label_cordX.grid(row=n ,column=2 )
+        self.type_in_add_node_label_cordY.grid(row=n ,column=3 )
+        self.type_in_add_node_entry_name.grid(row=n+1 ,column=1 )
+        self.type_in_add_node_entry_cordX.grid(row=n+1 ,column=2 )
+        self.type_in_add_node_entry_cordY.grid(row=n+1 ,column=3 )
+        self.type_in_add_node_button_submit.grid(row=n+1 ,column=4 )
+
+        n+=2
+
+        ##### ADD EDGE GRID ##########
+        self.type_in_add_edge_label.grid(row=n+1 ,column=0 )
+        self.type_in_add_edge_label_node1.grid(row=n ,column=1 )
+        self.type_in_add_edge_label_node2.grid(row=n ,column=2 )
+        self.type_in_add_edge_label_wage.grid(row=n ,column=3 )
+        self.type_in_add_edge_entry_node1.grid(row=n+1 ,column=1 )
+        self.type_in_add_edge_entry_node2.grid(row=n+1 ,column=2 )
+        self.type_in_add_edge_entry_wage.grid(row=n+1 ,column=3 )
+        self.type_in_add_edge_button_submit.grid(row=n+1 ,column=4 )
+
+        n+=2
+
+        ##### REMOVE NODE #############
+        self.type_in_remove_node_label.grid(row=n+1 , column=0 )
+        self.type_in_remove_node_label_node.grid(row=n , column=1 )
+        self.type_in_remove_node_entry.grid(row=n+1 , column=1 )
+        self.type_in_remove_node_button_submit.grid(row=n+1 , column=4 )
+        n+=2
+
+        ##### REMOVE EDGE GRID ##########
+        self.type_in_remove_edge_label.grid(row=n+1 , column=0 )
+        self.type_in_remove_edge_label.node1.grid(row=n , column=1 )
+        self.type_in_remove_edge_label.node2.grid(row=n, column=2 )
+        self.type_in_remove_edge_entry_node1.grid(row=n+1 , column=1 )
+        self.type_in_remove_edge_entry_node2.grid(row=n+1 , column=2 )
+        self.type_in_remove_edge_button_submit.grid(row=n+1 , column=4 )
+        n+=2
+
+        ##### CHANGE WAGE GRID ##########
+        self.type_in_change_wage_label.grid(row=n+1 , column=0 )
+        self.type_in_change_wage_label_node1.grid(row=n , column=1 )
+        self.type_in_change_wage_label_node2.grid(row=n , column=2 )
+        self.type_in_change_wage_label_wage.grid(row=n , column=2 )
+        self.type_in_change_wage_entry_node1.grid(row=n+1 , column=1 )
+        self.type_in_change_wage_entry_node2.grid(row=n+1 , column=2 )
+        self.type_in_change_wage_entry_wage.grid(row=n+1 , column=3 )
+        self.type_in_change_wage_button_submit.grid(row=n+1 , column=4 )
+
+        self.type_in_window.mainloop()
+
+    def type_in_add_node(self):
+        if self.type_in_add_node_entry_name.get() not in graf.nodes and self.type_in_add_node_entry_cordX.get() and self.type_in_add_node_entry_cordY.get():
+            graf.add_node(self.type_in_add_node_entry_name.get(),self.type_in_add_node_entry_cordX.get(),self.type_in_add_node_entry_cordY.get())
+            self.draw_graph()
+        else:
+            messagebox.showerror("Error", "Wrong data")
+
+    def type_in_add_edge(self):
+        if self.type_in_add_edge_entry_node1.get() in graf.nodes and self.type_in_add_edge_entry_node2.get() in graf.nodes:
+            if self.type_in_add_edge_entry_wage.get():
+                if self.type_in_add_edge_entry_wage.get().isnumeric():
+                    graf.add_edge_undirected(self.type_in_add_edge_entry_node1.get(),self.type_in_add_edge_entry_node2.get(),self.type_in_add_edge_entry_wage.get())
+                    self.draw_graph()
+                else:
+                    messagebox.showerror("Error", "Wage must be a number")
+            else:
+                graf.add_edge_undirected(self.type_in_add_edge_entry_node1.get(),self.type_in_add_edge_entry_node2.get())
+                self.draw_graph()
+        else:
+            messagebox.showerror("Error", "There are no such a nodes")
+
+    def type_in_remove_node(self):
+        if self.type_in_remove_node_entry.get() in graf.nodes:
+            graf.remove_node(self.type_in_remove_node_entry.get())
+            self.draw_graph()
+        else:
+            messagebox.showerror("Error", "There is no such a node")
+
+    def type_in_remove_edge(self):
+        if self.type_in_remove_edge_entry_node1.get() and self.type_in_remove_edge_entry_node2.get() and self.type_in_remove_edge_entry_node2.get()+self.type_in_remove_edge_entry_node1.get() in graf.edge_quantity:
+            graf.remove_edge(self.type_in_remove_edge_entry_node1.get(),self.type_in_remove_edge_entry_node2.get())
+            self.draw_graph()
+        else:
+            messagebox.showerror("Error", "There is no such an edge")
+
+    def type_in_change_wage(self):
+        if self.type_in_change_wage_entry_wage.get() and self.type_in_change_wage_entry_node1.get() and self.type_in_change_wage_entry_node2.get():
+            if self.type_in_change_wage_entry_wage.get().isnumeric() and self.type_in_change_wage_entry_node1.get()+self.type_in_change_wage_entry_node2.get() in graf.edge_wage:
+                graf.change_wage(self.type_in_change_wage_entry_node1.get(),self.type_in_change_wage_entry_node2.get(),self.type_in_change_wage_entry_wage.get())
+                self.draw_graph()
+            else:
+                messagebox.showerror("Error", "There is no such an edge or wage is not a number")
+        else:
+            messagebox.showerror("Error", "Entrys are empty")
+
+
+###############################################
 
 ###############################################
 ######## Create visited={}##################
@@ -731,7 +887,7 @@ class main:
             if visited[i]==False:
                 self.DFSUtil(i,visited)
 
-###############################################
+############################################self.dev_window_frame.pack(fill=BOTH, expand=False)###
 
 ###############################################
 ######    Euler path/cycle    ################
@@ -1004,7 +1160,7 @@ class main:
             if self.visited[node]==False:
                 if node not in self.node_wage:
                     self.node_wage[node]=int(self.node_wage[self.current_node])+int(graf.edge_wage[self.current_node+node])
-                    self.node_path[node]=str(self.node_path[self.current_node])+str(node)
+                    self.node_path[node]=str(self.node_path[self.current_node])+"->"+str(node)
                 else:
                     if self.node_wage[node]>int(self.node_wage[self.current_node])+int(graf.edge_wage[self.current_node+node]):
                         self.node_wage[node]=int(self.node_wage[self.current_node])+int(graf.edge_wage[self.current_node+node])
@@ -1037,7 +1193,6 @@ class main:
         self.isConsistent(visited,start_node)
         i=0
 
-        print(visited)
         for node in visited:
             if visited[node]==True:
                 i+=1
@@ -1051,6 +1206,7 @@ class main:
                 i-=1
             print("Shortest paths from node ", start_node)
             for node in self.node_wage:
+                if node!=start_node:
                     print("to node ",node," : ")
                     print("Path length=",self.node_wage[node])
                     print("Shortest path for this node is ", self.node_path[node])
@@ -1061,10 +1217,10 @@ class main:
 ###############################################
 ###### Dev options ###########################
     def open_dev_window(self):
-        self.dev_window= Tk()
-    #    self.dev_window.geometry("500x600")
+        self.dev_window= Toplevel()
+        self.dev_window.grab_set()
         self.dev_window.attributes("-topmost",True)
-        self.dev_window.title('Adajacency matrix')
+        self.dev_window.title('Dev Tools')
         self.dev_window.resizable(False,False)
 
         self.dev_window_frame=Frame(self.dev_window)
@@ -1102,8 +1258,7 @@ class main:
         self.dev_dfs_button= Button(self.dev_window_frame,width=15,text="Submit", command=self.DFS)
         self.dev_critical_edges= Button(self.dev_window_frame,width=15,text="Critical Edges", command=self.critical_edge)
         self.dev_draw_graph= Button(self.dev_window_frame,width=15,text="Draw graph", command=self.draw_graph)
-        self.var=IntVar()
-        self.dev_checkout= Checkbutton(self.dev_window_frame,width=15,text="Dev_checkout", command=self.draw_graph)
+        self.dev_checkout= Checkbutton(self.dev_window_frame,width=15,text="Dev_checkout", variable=self.showcords)
         self.dev_SPW_node= Entry(self.dev_window_frame,width=4)
         self.dev_shortest_path_wage= Button(self.dev_window_frame,width=15,text="Shortest Wage Path", command=lambda: self.SPW_all(self.dev_SPW_node.get()))
         self.dev_SPW_for_all_node1= Entry(self.dev_window_frame,width=4)
@@ -1151,7 +1306,6 @@ class main:
         self.dev_SPW_for_all_node2.grid(row=20,column=1)
         self.dev_shortest_path_wage_for_all.grid(row=20,column=2)
 
-        self.dev_window.mainloop()
 
     def dev_add_node(self):
         if self.dev_add_node_entry_name.get() not in graf.nodes and self.dev_add_node_entry_cordX.get() and self.dev_add_node_entry_cordY.get():
@@ -1196,11 +1350,11 @@ class main:
         f.write("\r\n")
         for index in graf.adj_list:
             for keys in graf.adj_list[index]:
-                f.write(index)
+                f.write(str(index))
                 f.write(" ")
-                f.write(keys)
+                f.write(str(keys))
                 f.write(" ")
-                f.write(graf.edge_wage[index+keys])
+                f.write(graf.edge_wage[str(index)+str(keys)])
                 f.write("\r\n")
 
         f.close()
@@ -1231,74 +1385,17 @@ class main:
                 i=0
                 for y in data:
                     if i==0:
-                        node1=y
+                        node1=str(y)
                     if i==1:
-                        node2=y
+                        node2=str(y)
                     if i==2:
-                        edge_wage=y
+                        edge_wage=int(y)
                     i+=1
                 graf.add_edge_directed(node1,node2)
                 graf.change_wage(node1,node2,edge_wage)
         f.close()
         self.draw_graph()
 
-
-""" old save
-    def save(self):
-        graf.convert_to_adj_list()
-        f=open("savedgraf.txt","w+")
-        for index in graf.nodes:
-            f.write(index)
-            f.write(" ")
-            for keys in graf.cordsX[index]:
-                f.write(str(keys))
-            f.write(" ")
-            for keys in graf.cordsY[index]:
-                f.write(str(keys))
-            f.write("\r\n")
-        f.write("\r\n")
-        for index in graf.adj_list:
-            for keys in graf.adj_list[index]:
-                f.write(index)
-                f.write(" ")
-                f.write(keys)
-                f.write("\r\n")
-        f.close()
-
-    def load(self):
-        self.clear_canvas()
-        f=open("savedgraf.txt","r")
-        method="node"
-        f1= f.readlines()
-        for x in f1:
-            if not x.strip():
-                method="edge"
-                continue
-            if method=="node":
-                data=x.split()
-                i=0
-                for y in data:
-                    if i==0:
-                        node=str(y)
-                    if i==1:
-                        cordx=float(y)
-                    if i==2:
-                        cordy=float(y)
-                    i+=1
-                graf.add_node(node,cordx,cordy)
-            if method=="edge":
-                data=x.split()
-                i=0
-                for y in data:
-                    if i==0:
-                        node1=y
-                    if i==1:
-                        node2=y
-                    i+=1
-                graf.add_edge_directed(node1,node2)
-        f.close()
-        self.draw_graph()
-"""
 
 
 
