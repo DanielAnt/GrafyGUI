@@ -25,6 +25,10 @@ class Graf:
         self.cordsX[node].append(int(cordX))
         self.cordsY[node].append(int(cordY)) # addes node with cordx and cordy
 
+    def change_wage(self,node1,node2,wage):
+        if node1+node2 in self.edge_wage:
+            self.edge_wage[node1+node2]=wage
+
     def remove_node(self,node_1): #removes node
         self.temp_node=str(node_1)
         del self.nodes[self.temp_node]

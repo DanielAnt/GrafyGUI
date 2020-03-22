@@ -3,6 +3,8 @@ from tkinter import ttk, colorchooser, messagebox
 from Grafy import *
 from PIL import Image, ImageTk
 from math import *
+import sys
+sys.setrecursionlimit(2000)
 
 
 
@@ -31,18 +33,26 @@ class main:
         self.select_button = Radiobutton(self.buttons, text="Select",variable=self.switch_variable,indicatoron=False, value="select", height=1)
         self.removeNode_button = Button(self.buttons, text="Remove Node", command=self.remove_node, height=1)
         self.unEdge_button = Radiobutton(self.buttons, text="UnEdge",variable=self.switch_variable,indicatoron=False, value="drawUndirected", height=1)
+        self.edge_wage_entry= Entry(self.buttons,width=2,justify=RIGHT)
         self.directedEdge_button = Radiobutton(self.buttons, text="directedEdge",variable=self.switch_variable,indicatoron=False, value="drawDirected", height=1)
         self.buttonPrint= Button(self.buttons,text = "Print", command= self.print_graph, height=1)
+        self.draw_graph_button= Button(self.buttons,width=10,text="Draw graph", command=self.draw_graph)
         self.var1=IntVar()
-        self.directed_CheckButton= Checkbutton(self.controls, text="directed", variable=self.var1)
+        self.directed_CheckButton= Checkbutton(self.controls, text="Directed", variable=self.var1)
+        self.wage_var=IntVar()
+        self.wage_graph = Checkbutton(self.controls, text="Draw Wages", variable=self.wage_var)
+
         self.draw_Entry.pack(side="left",fill=Y, expand=True)
         self.draw_button.pack(side="left",fill=Y, expand=True)
         self.removeNode_button.pack(side="left",fill=Y, expand=True)
+        self.edge_wage_entry.pack(side="left")
         self.unEdge_button.pack(side="left",fill=Y, expand=True)
         self.directedEdge_button.pack(side="left",fill=Y, expand=True)
         self.select_button.pack(side="left",fill=Y, expand=True)
         self.buttonPrint.pack(side="left")
+        self.draw_graph_button.pack(side="left")
         self.directed_CheckButton.pack(side="left")
+        self.wage_graph.pack(side="left")
         self.controls.pack(side=TOP,fill=X, expand=False)
 
 
@@ -134,18 +144,45 @@ class main:
             self.text+=":\n"
             for keys in graf.nodes[source]:
                 self.text+=str(keys)
+                if self.wage_var.get()==1:
+                    self.text+="-"
+                    self.text+=str(graf.edge_wage[keys])
                 self.text+="\n"
         self.print.create_text(50,200,fill="darkblue",font="Times 10 italic bold", text=self.text)   #prints graph on canvas
 
     def create_line_arc(self,node1,node2):
         if node1==node2:
             #self.c.create_oval(graf.return_X(node1)+25,graf.return_Y(node1)+25,graf.return_X(node1),graf.return_Y(node1))
-            self.c.create_line(graf.return_X(node1)+5,graf.return_Y(node1)+5,graf.return_X(node1),graf.return_Y(node1)-35,graf.return_X(node1)-35,graf.return_Y(node1)-35,graf.return_X(node1)-35,graf.return_Y(node1),graf.return_X(node2)+5,graf.return_Y(node2)+5,width=1,fill="red",smooth=True)    #draw graph edges
+            self.c.create_line(graf.return_X(node1)+5,graf.return_Y(node1)+5,graf.return_X(node1),graf.return_Y(node1)-35,graf.return_X(node1)-35,graf.return_Y(node1)-35,graf.return_X(node1)-35,graf.return_Y(node1),graf.return_X(node2)+5,graf.return_Y(node2)+5,width=1,fill="black",smooth=True)    #draw graph edges
 
 
         else:
-            if graf.edge_quantity[node1+node2]==1:
-                self.c.create_line(graf.return_X(node1),graf.return_Y(node1),graf.return_X(node2),graf.return_Y(node2),width=1,fill="red",smooth=True)    #draw graph edges
+            if graf.edge_quantity[node1+node2]==1 and graf.times_has_been_drawn[node1+node2]<graf.edge_quantity[node1+node2]:
+                z=10
+                x=graf.return_X(node1)
+                y=graf.return_Y(node1)
+                x1=graf.return_X(node2)
+                y1=graf.return_Y(node2)
+                if x==x1:
+                    x+=1
+                if y==y1:
+                    y+=1
+                if self.wage_var.get()==1:
+                    ymid=(y+y1)/2
+                    xmid=(x+x1)/2
+                    a1=-(x-x1)/(y-y1)
+                    b1=ymid-xmid*a1
+                    VarA=float((1+a1**2))
+                    VarB=float(((-2)*xmid+2*a1*b1-2*a1*ymid))
+                    VarC=float((xmid**2)+(b1**2)-2*b1*ymid+(ymid**2)-(z**2))
+                    DELTA=float(VarB**2-4*VarA*VarC)
+                    X_wynik1=float((-VarB+sqrt(DELTA))/(2*VarA))
+                    X_wynik2=float((-VarB-sqrt(DELTA))/(2*VarA))
+                    Y_wynik1=a1*X_wynik1+b1
+                    Y_wynik2=a1*X_wynik2+b1
+                self.c.create_line(graf.return_X(node1),graf.return_Y(node1),graf.return_X(node2),graf.return_Y(node2),width=1,fill="black",smooth=True)    #draw graph edges
+                if self.wage_var.get()==1:
+                    self.c.create_text(X_wynik2,Y_wynik2,fill="darkblue",font="Times 10 italic bold", text=graf.edge_wage[node1+node2])
                 self.temp=graf.times_has_been_drawn[node1+node2]
                 self.temp+=1
                 graf.times_has_been_drawn[node1+node2]=self.temp
@@ -183,10 +220,38 @@ class main:
                     X_wynik2=float((-VarB-sqrt(DELTA))/(2*VarA))
                     Y_wynik1=a1*X_wynik1+b1
                     Y_wynik2=a1*X_wynik2+b1
+                    if self.wage_var.get()==1:
+                        z=z+10
+                        x=graf.return_X(node1)
+                        y=graf.return_Y(node1)
+                        x1=graf.return_X(node2)
+                        y1=graf.return_Y(node2)
+                        if x==x1:
+                            x+=1
+                        if y==y1:
+                            y+=1
+                        ymid=(y+y1)/2
+                        xmid=(x+x1)/2
+                        a1=-(x-x1)/(y-y1)
+                        b1=ymid-xmid*a1
+                        VarA=float((1+a1**2))
+                        VarB=float(((-2)*xmid+2*a1*b1-2*a1*ymid))
+                        VarC=float((xmid**2)+(b1**2)-2*b1*ymid+(ymid**2)-(z**2))
+                        DELTA=float(VarB**2-4*VarA*VarC)
+                        X_wage1=float((-VarB+sqrt(DELTA))/(2*VarA))
+                        X_wage2=float((-VarB-sqrt(DELTA))/(2*VarA))
+                        Y_wage1=a1*X_wynik1+b1
+                        Y_wage2=a1*X_wynik2+b1
                     if ratio % 2 == 0:
-                        self.c.create_line(graf.return_X(node1),graf.return_Y(node1),X_wynik1,Y_wynik1,graf.return_X(node2),graf.return_Y(node2),width=1,fill="red",smooth=True)    #draw graph edges
+                        self.c.create_line(graf.return_X(node1),graf.return_Y(node1),X_wynik1,Y_wynik1,graf.return_X(node2),graf.return_Y(node2),width=1,fill="black",smooth=True)    #draw graph edges
+                        if self.wage_var.get()==1:
+                            self.c.create_text(X_wage1,Y_wage1,fill="darkblue",font="Times 10 italic bold", text=graf.edge_wage[node1+node2])
                     else:
-                        self.c.create_line(graf.return_X(node1),graf.return_Y(node1),X_wynik2,Y_wynik2,graf.return_X(node2),graf.return_Y(node2),width=1,fill="red",smooth=True)    #draw graph edges
+                        self.c.create_line(graf.return_X(node1),graf.return_Y(node1),X_wynik2,Y_wynik2,graf.return_X(node2),graf.return_Y(node2),width=1,fill="black",smooth=True)    #draw graph edges
+                        if self.wage_var.get()==1:
+                            self.c.create_text(X_wage2,Y_wage2,fill="darkblue",font="Times 10 italic bold", text=graf.edge_wage[node1+node2])
+
+
                     self.temp=graf.times_has_been_drawn[node1+node2]
                     self.temp+=1
                     graf.times_has_been_drawn[node1+node2]=self.temp
@@ -245,8 +310,17 @@ class main:
                                         if j in graf.cordsX[keys]:
                                             for l in range(self.new_y-10,self.new_y+10):
                                                 if l in graf.cordsY[keys]:
-                                                    graf.add_edge_undirected(source,keys)
-                                                    self.draw_graph()
+                                                    if self.edge_wage_entry.get() and self.edge_wage_entry.get().isnumeric():
+                                                        if self.edge_wage_entry.get().isnumeric:
+                                                            graf.add_edge_undirected(source,keys,self.edge_wage_entry.get())
+                                                            self.draw_graph()
+                                                        else:
+                                                            messagebox.showerror("Error", "Edge wage must be numeric")
+                                                    else:
+                                                        graf.add_edge_undirected(source,keys)
+                                                        self.draw_graph()
+
+
                                                     #self.c.create_line(graf.return_X(source),graf.return_Y(source),graf.return_Y(source),graf.return_X(keys),graf.return_X(keys),graf.return_Y(keys),width=1,fill="red",smooth=True)
                                                     #self.c.create_line(graf.cordsX[source],graf.cordsY[source],graf.cordsX[keys],graf.cordsY[keys],width=1,fill="red",arrow='last',capstyle=ROUND,smooth=True)
 
@@ -267,7 +341,7 @@ class main:
                                                     #self.c.create_line(graf.cordsX[source],graf.cordsY[source],graf.cordsX[keys],graf.cordsY[keys],width=1,fill="red",smooth=True)
                                                     self.c.create_line(graf.return_X(source),graf.return_Y(source),graf.return_X(keys),graf.return_Y(keys),width=1,fill="red",arrow='last',capstyle=ROUND,smooth=True)
                                                     graf.add_edge_directed(source,keys)
-
+                                                    self.draw_graph()
         if self.tool=="select":
             self.new_x=e.x
             self.new_y=e.y
@@ -609,6 +683,14 @@ class main:
         print(self.adj_list_nodes)
 
 ###############################################
+######## Create visited={}##################
+    def createVisited(self):
+        graf.convert_to_adj_list()
+        visited={}
+        for index in graf.adj_list:
+            visited[index]=False
+        return visited
+
 
 ###############################################
 ###### Eulerian Test #########################
@@ -629,9 +711,7 @@ class main:
                 return 0
 
     def isConnected(self):
-        visited={}
-        for index in graf.adj_list:
-            visited[index]=False
+        visited=self.createVisited()
         i=0
         for index in graf.adj_list:
             if len(graf.adj_list[index])>=1:
@@ -728,7 +808,6 @@ class main:
 ######    Hamilton path/cycle    ##############
 
     def hamilton_test(self):
-        self.iterations=0
         self.consistency=True
         self.path=[]
         self.longestPath=[]
@@ -737,9 +816,7 @@ class main:
             print("Graph has one or fewer nodes")
             self.consistency=False
         graf.convert_to_adj_list()
-        visited={}
-        for index in graf.adj_list:
-            visited[index]=False
+        visited=self.createVisited()
         for index in graf.adj_list:
             if len(graf.adj_list[index])<1:
                 self.consistency=False
@@ -757,7 +834,7 @@ class main:
             self.pathvisited={}
             self.u=list(graf.adj_list.keys())[0]
             for node in graf.nodes:
-                if len(graf.nodes[node])==1:
+                if len(graf.nodes[node])<len(graf.nodes[self.u]):
                     self.u=node
                     break;
             self.findPath(self.u)
@@ -803,7 +880,6 @@ class main:
                     print(self.longestPath)
                     return 0
             else:
-                self.iterations+=1
                 h=self.path.pop()
                 try:
                     i=self.path.pop()
@@ -819,10 +895,7 @@ class main:
     def BFS(self):
         self.temp_string=""
         s=self.dev_bfs_entry.get()    #### temporary solution
-        visited={}
-        graf.convert_to_adj_list()
-        for nodes in graf.adj_list:
-            visited[nodes]=False
+        visited=self.createVisited()
         queue=[]
         queue.append(s)
         visited[s]=True
@@ -843,10 +916,7 @@ class main:
     def DFS(self):
         self.temp_string=""
         v=self.dev_dfs_entry.get()
-        visited={}
-        graf.convert_to_adj_list()
-        for node in graf.adj_list:
-            visited[node]=False
+        visited=self.createVisited()
         self.DFSfunction(v,visited)
         self.temp_string=self.temp_string[:-1]
         print(self.temp_string)
@@ -862,17 +932,18 @@ class main:
 ######### SEARCH for critcal edge #############
 
     def critical_edge(self):
+        self.critical_edges=[]
         for node1 in graf.nodes:
             for node2 in graf.nodes:
                 if node1+node2 in graf.edge_quantity:
                     self.consistency=True
                     graf.convert_to_adj_list()
                     self.isitcritical(node1,node2)
+        if len(self.critical_edges)<1:
+            print("There is no critical edges")
 
     def isitcritical(self,node1,node2):
-        visited={}
-        for nodes in graf.adj_list:
-            visited[nodes]=False
+        visited=self.createVisited()
         self.isConsistent(visited,node1)
         for index in visited:
             if visited[index]==False:
@@ -887,28 +958,111 @@ class main:
             for index in visited:
                 if visited[index]==False:
                     print("Edge ", node1+node2," is critical")
+                    self.critical_edges.append(node1+node2)
                     break;
             graf.add_edge_undirected(node1,node2)
 
+###############################################
+#########Shortest path from to#################
+
+    def SPW(self,start_node,end_node):
+        self.node_wage={}
+        self.node_path={}
+        visited=self.createVisited()
+        if self.areConnected(visited,start_node,end_node)==True:
+            self.visited=self.createVisited()
+            self.current_node=start_node
+            self.node_wage[self.current_node]=0
+            self.node_path[self.current_node]=""
+            while self.visited[end_node]==False:
+                self.looking_for_shorest_path()
+
+            print("Shortest paths from node ", start_node)
+            for node in self.node_wage:
+                if node==end_node:
+                    print("to node ",node," : ")
+                    print("Path length=",self.node_wage[node])
+                    print("Shortest path for this node is ", self.node_path[node])
+
+        else:
+            print("Nodes aren't connected")
+
+
+    def areConnected(self,visited,start_node,end_node):
+        visited[start_node]=True
+        for i in graf.adj_list[start_node]:
+            if visited[i]==False:
+                self.areConnected(visited,i,end_node)
+        if visited[end_node]==True:
+            return True
+        else:
+            return False
+
+    def looking_for_shorest_path(self):
+        self.visited[self.current_node]=True
+        for node in graf.adj_list[self.current_node]:                              ### adds node
+            if self.visited[node]==False:
+                if node not in self.node_wage:
+                    self.node_wage[node]=int(self.node_wage[self.current_node])+int(graf.edge_wage[self.current_node+node])
+                    self.node_path[node]=str(self.node_path[self.current_node])+str(node)
+                else:
+                    if self.node_wage[node]>int(self.node_wage[self.current_node])+int(graf.edge_wage[self.current_node+node]):
+                        self.node_wage[node]=int(self.node_wage[self.current_node])+int(graf.edge_wage[self.current_node+node])
+                        self.node_path[node]=str(self.node_path[self.current_node])+"->"+str(node)
+        self.available=[]
+        for node in self.visited:
+            if self.visited[node]==False and node in self.node_wage:
+                self.available.append(node)
+        self.current_node=None
+        for node in self.available:                                   ### searches for next node with lowest wage
+            if self.current_node==None:
+                self.current_node=node
+            if self.node_wage[node]<self.node_wage[self.current_node] and self.visited[node]==False:
+                self.current_node=node
+
+
+###############################################
 
 
 
+###############################################
+#########Shortest path for all #################
 
+    def SPW_all(self,start_node):
+        self.node_wage={}
+        self.node_path={}
+        self.availablenodes=[]
+        isConsistent=True
+        visited=self.createVisited()
+        self.isConsistent(visited,start_node)
+        i=0
 
-
-
-    #    if self.path
-    #    self.path.pop()
-    #    self.isConsistent(visited,self.path.pop())
-
-
+        print(visited)
+        for node in visited:
+            if visited[node]==True:
+                i+=1
+        if i>0:
+            self.visited=self.createVisited()
+            self.current_node=start_node
+            self.node_wage[self.current_node]=0
+            self.node_path[self.current_node]=""
+            while i>0:
+                self.looking_for_shorest_path()
+                i-=1
+            print("Shortest paths from node ", start_node)
+            for node in self.node_wage:
+                    print("to node ",node," : ")
+                    print("Path length=",self.node_wage[node])
+                    print("Shortest path for this node is ", self.node_path[node])
+        else:
+            print("Nodes aren't connected")
 
 
 ###############################################
 ###### Dev options ###########################
     def open_dev_window(self):
         self.dev_window= Tk()
-        self.dev_window.geometry("500x600")
+    #    self.dev_window.geometry("500x600")
         self.dev_window.attributes("-topmost",True)
         self.dev_window.title('Adajacency matrix')
         self.dev_window.resizable(False,False)
@@ -933,6 +1087,7 @@ class main:
         self.dev_add_edge_label=Label(self.dev_window_frame,text="ADD EDGE")
         self.dev_add_edge_entry_node1= Entry(self.dev_window_frame,width=4)
         self.dev_add_edge_entry_node2= Entry(self.dev_window_frame,width=4)
+        self.dev_add_edge_entry_wage= Entry(self.dev_window_frame,width=4)
         self.dev_add_edge_button_submit= Button(self.dev_window_frame,text="Submit", command=self.dev_add_edge,width=4)
         self.dev_remove_edge_label=Label(self.dev_window_frame,text="REMOVE EDGE")
         self.dev_remove_edge_entry_node1= Entry(self.dev_window_frame,width=4)
@@ -947,6 +1102,14 @@ class main:
         self.dev_dfs_button= Button(self.dev_window_frame,width=15,text="Submit", command=self.DFS)
         self.dev_critical_edges= Button(self.dev_window_frame,width=15,text="Critical Edges", command=self.critical_edge)
         self.dev_draw_graph= Button(self.dev_window_frame,width=15,text="Draw graph", command=self.draw_graph)
+        self.var=IntVar()
+        self.dev_checkout= Checkbutton(self.dev_window_frame,width=15,text="Dev_checkout", command=self.draw_graph)
+        self.dev_SPW_node= Entry(self.dev_window_frame,width=4)
+        self.dev_shortest_path_wage= Button(self.dev_window_frame,width=15,text="Shortest Wage Path", command=lambda: self.SPW_all(self.dev_SPW_node.get()))
+        self.dev_SPW_for_all_node1= Entry(self.dev_window_frame,width=4)
+        self.dev_SPW_for_all_node2= Entry(self.dev_window_frame,width=4)
+        self.dev_shortest_path_wage_for_all= Button(self.dev_window_frame,width=15,text="Shortest Wage Path", command=lambda: self.SPW(self.dev_SPW_for_all_node1.get(),self.dev_SPW_for_all_node2.get()))
+
 
         self.dev_print_grafnodes.grid(row=0,column=0)
         self.dev_print_cordsX.grid(row=1,column=0)
@@ -965,7 +1128,8 @@ class main:
         self.dev_add_edge_label.grid(row=10,column=0)
         self.dev_add_edge_entry_node1.grid(row=10,column=1)
         self.dev_add_edge_entry_node2.grid(row=10,column=2)
-        self.dev_add_edge_button_submit.grid(row=10,column=3)
+        self.dev_add_edge_entry_wage.grid(row=10,column=3)
+        self.dev_add_edge_button_submit.grid(row=10,column=4)
         self.dev_remove_edge_label.grid(row=11,column=0)
         self.dev_remove_edge_entry_node1.grid(row=11,column=1)
         self.dev_remove_edge_entry_node2.grid(row=11,column=2)
@@ -979,6 +1143,13 @@ class main:
         self.dev_dfs_button.grid(row=14,column=2)
         self.dev_critical_edges.grid(row=15,column=0)
         self.dev_draw_graph.grid(row=16,column=0)
+        self.dev_checkout.grid(row=17,column=0)
+        self.dev_shortest_path_wage.grid(row=18,column=0)
+        self.dev_SPW_node.grid(row=19,column=0)
+        self.dev_shortest_path_wage.grid(row=19,column=1)
+        self.dev_SPW_for_all_node1.grid(row=20,column=0)
+        self.dev_SPW_for_all_node2.grid(row=20,column=1)
+        self.dev_shortest_path_wage_for_all.grid(row=20,column=2)
 
         self.dev_window.mainloop()
 
@@ -991,8 +1162,15 @@ class main:
 
     def dev_add_edge(self):
         if self.dev_add_edge_entry_node1.get() in graf.nodes and self.dev_add_edge_entry_node2.get() in graf.nodes:
-            graf.add_edge_undirected(self.dev_add_edge_entry_node1.get(),self.dev_add_edge_entry_node2.get())
-            self.draw_graph()
+            if self.dev_add_edge_entry_wage.get():
+                if self.dev_add_edge_entry_wage.get().isnumeric():
+                    graf.add_edge_undirected(self.dev_add_edge_entry_node1.get(),self.dev_add_edge_entry_node2.get(),self.dev_add_edge_entry_wage.get())
+                    self.draw_graph()
+                else:
+                    messagebox.showerror("Error", "Wage must be a number")
+            else:
+                graf.add_edge_undirected(self.dev_add_edge_entry_node1.get(),self.dev_add_edge_entry_node2.get())
+                self.draw_graph()
         else:
             messagebox.showerror("Error", "NIE")
 
@@ -1003,6 +1181,69 @@ class main:
         else:
             messagebox.showerror("Error", "NIE")
 
+    def save(self):
+        graf.convert_to_adj_list()
+        f=open("savedgraf.txt","w+")
+        for index in graf.nodes:
+            f.write(index)
+            f.write(" ")
+            for keys in graf.cordsX[index]:
+                f.write(str(keys))
+            f.write(" ")
+            for keys in graf.cordsY[index]:
+                f.write(str(keys))
+            f.write("\r\n")
+        f.write("\r\n")
+        for index in graf.adj_list:
+            for keys in graf.adj_list[index]:
+                f.write(index)
+                f.write(" ")
+                f.write(keys)
+                f.write(" ")
+                f.write(graf.edge_wage[index+keys])
+                f.write("\r\n")
+
+        f.close()
+
+    def load(self):
+        self.clear_canvas()
+        f=open("savedgraf.txt","r")
+        method="node"
+        f1= f.readlines()
+        for x in f1:
+            if not x.strip():
+                method="edge"
+                continue
+            if method=="node":
+                data=x.split()
+                i=0
+                for y in data:
+                    if i==0:
+                        node=str(y)
+                    if i==1:
+                        cordx=float(y)
+                    if i==2:
+                        cordy=float(y)
+                    i+=1
+                graf.add_node(node,cordx,cordy)
+            if method=="edge":
+                data=x.split()
+                i=0
+                for y in data:
+                    if i==0:
+                        node1=y
+                    if i==1:
+                        node2=y
+                    if i==2:
+                        edge_wage=y
+                    i+=1
+                graf.add_edge_directed(node1,node2)
+                graf.change_wage(node1,node2,edge_wage)
+        f.close()
+        self.draw_graph()
+
+
+""" old save
     def save(self):
         graf.convert_to_adj_list()
         f=open("savedgraf.txt","w+")
@@ -1057,7 +1298,7 @@ class main:
                 graf.add_edge_directed(node1,node2)
         f.close()
         self.draw_graph()
-
+"""
 
 
 
