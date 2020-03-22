@@ -30,6 +30,8 @@ class main:
         self.controls=Frame(self.master,padx=5,pady=5,bg="black")
         self.buttons=Frame(self.controls,padx=3,pady=3, bd=2,relief="sunken")
         self.buttons.pack(side=LEFT)
+
+################# Buttons #################
         self.draw_button = Radiobutton(self.buttons, text="AddNode",variable=self.switch_variable,indicatoron=False, value="draw", height=1)
         self.draw_Entry= Entry(self.buttons,width=5,justify=RIGHT)
         self.select_button = Radiobutton(self.buttons, text="Select",variable=self.switch_variable,indicatoron=False, value="select", height=1)
@@ -44,6 +46,7 @@ class main:
         self.wage_var=IntVar()
         self.wage_graph = Checkbutton(self.controls, text="Draw Wages", variable=self.wage_var)
 
+############ Buttons.pack #################
         self.draw_Entry.pack(side="left",fill=Y, expand=True)
         self.draw_button.pack(side="left",fill=Y, expand=True)
         self.removeNode_button.pack(side="left",fill=Y, expand=True)
@@ -57,16 +60,17 @@ class main:
         self.wage_graph.pack(side="left")
         self.controls.pack(side=TOP,fill=X, expand=False)
 
+############ Canvas #############################
 
         self.print=Canvas(self.master,height=400,width=300, bg=self.color_bg)
         self.print.pack(side=LEFT,fill=Y,expand=False)
 
         self.c=Canvas(self.master,width=500,height=400,bg=self.color_bg,)
         self.c.pack(fill=BOTH,expand=True)
-    #    self.c.bind("<Motion>",self.moved)
+#        self.c.bind("<Motion>",self.moved)
 #        self.tag=self.c.create_text(10,10, text="", anchor="nw")
 
-
+############# Cascades ##############################
 
         self.menu = Menu(self.master)
         self.master.config(menu=self.menu)
@@ -76,6 +80,12 @@ class main:
         self.graphmenu.add_command(label='Incidence matrix',command=self.graph_add_inc)
         self.graphmenu.add_command(label='Adjacency list',command=self.graph_add_adjlist)
         self.graphmenu.add_command(label='Type in',command=self.type_in)
+        self.testmenu= Menu(self.menu)
+        self.menu.add_cascade(label='Tests', menu=self.testmenu)
+        self.testmenu.add_command(label='Eulerian tests',command=self.graph_tests)
+        self.testmenu.add_command(label='Hamiltons test',command=self.graph_temp)
+        self.testmenu.add_command(label='Searching',command=self.graph_temp)
+        self.testmenu.add_command(label='Shortest paths',command=self.graph_temp)
         self.optionmenu = Menu(self.menu)
         self.menu.add_cascade(label='Options',menu=self.optionmenu)
         self.optionmenu.add_command(label='Clear',command=self.clear_canvas)
@@ -111,7 +121,8 @@ class main:
     def tools(self,task):
         self.tool=task   # changes tool used with mouse1
 
-
+    def graph_temp(self):
+        print("lol")
 ###############################################
 ##############CLEARING CANVAS##################
 
@@ -272,7 +283,6 @@ class main:
         self.draw_edges()
         self.draw_nodes()
 
-
 ###############################################
 
 ###############################################
@@ -370,6 +380,7 @@ class main:
         self.graph_add_window.grab_set()
         self.graph_add_window.attributes("-topmost",True)
         self.graph_add_window.title('Adajacency matrix')
+        self.graph_add_window.resizable(False,False)
         self.frame_one=Frame(self.graph_add_window,width=100,height=500,borderwidth=2,relief='sunken')
         self.frame_one.pack(side="left",fill=BOTH, expand=False)
         self.nodeQuantity_Label=Label(self.frame_one,font="Times 10 italic bold",text='How many Nodes?')
@@ -384,6 +395,7 @@ class main:
             self.temp_NodeQuantity=int(self.nodeQuantity_Entry.get())
             self.matrix_window= Toplevel()
             self.matrix_window.grab_set()
+            self.matrix_window.resizable(False,False)
             self.matrix_window.attributes("-topmost",True)
             self.matrix_window.title("Adjacency matrix")
             self.graph_add_window.destroy()
@@ -437,6 +449,7 @@ class main:
         self.graph_add_window.grab_set()
         self.graph_add_window.attributes("-topmost",True)
         self.graph_add_window.title('Incidence matrix')
+        self.graph_add_window.resizable(False,False)
         self.frame_one=Frame(self.graph_add_window,width=100,height=500,borderwidth=2,relief='sunken')
         self.frame_one.pack(side="left",fill=BOTH, expand=False)
         self.nodeQuantity_Label=Label(self.frame_one,font="Times 10 italic bold",text='Number of nodes?')
@@ -457,7 +470,8 @@ class main:
             self.matrix_window= Toplevel()
             self.matrix_window.grab_set()
             self.matrix_window.attributes("-topmost",True)
-            self.matrix_window.title("Adjacency matrix")
+            self.matrix_window.title("Incidence matrix")
+            self.matrix_window.resizable(False,False)
             self.graph_add_window.destroy()
             self.frame_two=Frame(self.matrix_window,relief='sunken')
             self.frame_two.pack(side="left",fill=BOTH, expand=False)
@@ -782,7 +796,7 @@ class main:
         self.type_in_change_wage_label.grid(row=n+1 , column=0 )
         self.type_in_change_wage_label_node1.grid(row=n , column=1 )
         self.type_in_change_wage_label_node2.grid(row=n , column=2 )
-        self.type_in_change_wage_label_wage.grid(row=n , column=2 )
+        self.type_in_change_wage_label_wage.grid(row=n , column=3 )
         self.type_in_change_wage_entry_node1.grid(row=n+1 , column=1 )
         self.type_in_change_wage_entry_node2.grid(row=n+1 , column=2 )
         self.type_in_change_wage_entry_wage.grid(row=n+1 , column=3 )
@@ -838,7 +852,69 @@ class main:
 
 ###############################################
 
+#############################################
+############# TESTS #########################
+
+    def graph_tests(self):
+        self.graph_tests_window= Toplevel()
+        self.graph_tests_window.grab_set()
+        self.graph_tests_window.resizable(False,False)
+        self.graph_tests_window.attributes("-topmost",True)
+        self.graph_tests_window.title('Eulerian Tests')
+
+        ######### Frames ##################
+        self.graph_tests_buttons_frame=Frame(self.graph_tests_window)
+        self.graph_tests_canvas_frame=Frame(self.graph_tests_window,width=300, height=300)
+        self.graph_tests_buttons_frame.pack(side="left",fill=BOTH, expand=True)
+        self.graph_tests_canvas_frame.pack(side="left",fill=BOTH, expand=True)
+
+        ####### Buttons ##################
+        self.graph_tests_is_eulerian=Button(self.graph_tests_buttons_frame, text="Eulerian Test",command=self.graph_tests_is_eulerian_function)
+        self.graph_tests_find_eulerian_cycle=Button(self.graph_tests_buttons_frame, text="Search for eulerian cycle/path",command=self.graph_tests_eulerian)
+        self.graph_tests_hamilton=Button(self.graph_tests_buttons_frame,text="Hamiltons test",command=self.graph_tests_hamilton)
+
+        n=0
+
+        self.graph_tests_is_eulerian.grid(row=n ,column=0)
+
+        n+=1
+
+        self.graph_tests_find_eulerian_cycle.grid(row=n,column=0)
+
+        n+=1
+
+        self.graph_tests_hamilton.grid(row=n,column=0)
+
+        ######## Canvas ##################
+        self.graph_tests_canvas=Canvas(self.graph_tests_canvas_frame,width=300,height=300, bg="white")
+        self.graph_tests_canvas.pack(fill=BOTH,expand=True)
+
+
+
+
+    def graph_tests_is_eulerian_function(self):
+        test=self.eulerian_test()
+        if test==0:
+            text="Graph isn't eulerian"
+        if test==1:
+            text="Graph have eulerian cycle"
+        if test==2:
+            text="Graph have eulerian path"
+        self.graph_tests_print_text(text)
+
+    def graph_tests_eulerian(self):
+        self.graph_tests_print_text(self.printforall("No"))
+
+    def graph_tests_hamilton(self):
+        text=self.hamilton_test()
+        self.graph_tests_print_text(text)
+
+    def graph_tests_print_text(self,text):
+        self.graph_tests_canvas.delete(ALL)
+        self.graph_tests_canvas.create_text(150,50,font="Times 10 italic bold",text=text)
+
 ###############################################
+
 ######## Create visited={}##################
     def createVisited(self):
         graf.convert_to_adj_list()
@@ -892,28 +968,45 @@ class main:
 ###############################################
 ######    Euler path/cycle    ################
 
-    def printforall(self):
+    def printforall(self,var="yes"):
+        self.text=""
         graf.convert_to_adj_list()
-        u=list(graf.adj_list.keys())[0]
+        u=list(graf.nodes)[0]
         if self.eulerian_test()==1 or self.eulerian_test()==2:
             if self.eulerian_test()==1 and len(graf.edge_quantity)>0:
-                print("cykl")
+                if var=="yes":
+                    print("Cycle")
+                else:
+                    self.text="Cycle "
             if self.eulerian_test()==2 and len(graf.edge_quantity)>0:
-                print("ścieżka")
+                if var=="yes":
+                    print("Path")
+                else:
+                    self.text="Path "
             for i in graf.adj_list:
                 if len(graf.adj_list[i]) %2 != 0:
                     u=i
                     break
-            self.printEuler(u)
+            self.printEuler(u,print)
+            if var!="yes":
+                return self.text
         else:
-            print("Graf nie ma cyklu ani ścieżki eulera")
+            if var=="yes":
+                print("Graph isn't eulerian")
+                return 0
+            else:
+                self.text="Graph isn't eulerian"
+                return self.text
 
-    def printEuler(self,u):
+    def printEuler(self,u,var):
         for v in graf.adj_list[u]:
             if self.validNextEdge(u,v):
-                print(u,"-",v),
+                if var=="yes":
+                    print(u,"-",v)
+                else:
+                    self.text+=u+"-"+v+" "
                 self.rmvEdge(u,v)
-                self.printEuler(v)
+                self.printEuler(v,var)
 
     def Count(self,v,visited):
         count=1
@@ -964,6 +1057,7 @@ class main:
 ######    Hamilton path/cycle    ##############
 
     def hamilton_test(self):
+        self.text=""
         self.consistency=True
         self.path=[]
         self.longestPath=[]
@@ -982,9 +1076,10 @@ class main:
             self.isConsistent(visited, u)
         for index in visited:
             if visited[index]==False:
-                print("Graph isn't consistent")
+#                print("Graph isn't consistent")
                 self.consistency=False
-                break;
+                self.text="Graph isn't consistent"
+                return self.text
         if self.consistency==True:
             self.path=[]
             self.pathvisited={}
@@ -992,8 +1087,9 @@ class main:
             for node in graf.nodes:
                 if len(graf.nodes[node])<len(graf.nodes[self.u]):
                     self.u=node
-                    break;
             self.findPath(self.u)
+            return self.text
+
 
     def isConsistent(self,visited,index):
         visited[index]=True
@@ -1026,24 +1122,38 @@ class main:
                 if self.u in graf.adj_list[index]:
                     if len(graf.nodes[self.u])>1:
                         self.path.append(self.u)
-                        print("Found cycle")
-                    else:
-                        print("Found path")
-                    print(self.path)
-                    return 0
+        #               print("Found cycle")
+        #            else:
+        #           print("Found path")
+        #           print(self.path)
+                    self.text=self.convert_to_text(self.path)
+                    return self.text
                 else:
-                    print("Longest path")
-                    print(self.longestPath)
-                    return 0
+        #           print("Longest path")
+        #           print(self.longestPath)
+                    self.text=self.convert_to_text(self.longestPath)
+                    return self.text
             else:
                 h=self.path.pop()
-                try:
+                if len(self.path)==0:
+        #           print(self.longestPath)
+                    self.text=self.convert_to_text(self.longestPath)
+                    return self.text
+                else:
                     i=self.path.pop()
-                except (IndexError):
-                    print("Longest path")
-                    print(self.longestPath)
-                    return 0
-                self.findPath(i)
+                    self.findPath(i)
+
+
+    def convert_to_text(self,converted_object):
+        self.text=""
+        first=True
+        for key in converted_object:
+            if first==True:
+                self.text+=key
+                first=False
+            else:
+                self.text+="->"+key
+        return self.text
 
 ###############################################
 ######    Breadth First Search   ##############
@@ -1354,7 +1464,7 @@ class main:
                 f.write(" ")
                 f.write(str(keys))
                 f.write(" ")
-                f.write(graf.edge_wage[str(index)+str(keys)])
+                f.write(str(graf.edge_wage[str(index)+str(keys)]))
                 f.write("\r\n")
 
         f.close()

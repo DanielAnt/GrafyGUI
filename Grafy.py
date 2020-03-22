@@ -187,11 +187,11 @@ class Graf:
     def convert_to_adj_list(self):
         self.adj_list={}
         for index in self.nodes:
-            self.adj_list[index]=[]
+            self.adj_list[str(index)]=[]
             for index2 in self.nodes:
                 for keys in self.nodes[index]:
                     if index+index2==keys:
-                        self.adj_list[index].append(index2)
+                        self.adj_list[str(index)].append(str(index2))
 
 
 
