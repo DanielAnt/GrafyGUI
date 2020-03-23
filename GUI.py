@@ -14,7 +14,7 @@ class main:
         self.master = master
         self.color_fg = 'black'
         self.color_bg = 'white'
-        self.draw_ratio=int(3)
+        self.draw_ratio=int(1)
         self.switch_variable = StringVar(value="")
         self.selected=False
         self.remove=False
@@ -355,6 +355,7 @@ class main:
 
 ###############################################
 ####### MOUSE CANVAS FUNCTIONS################
+
     def Cords(self,e):
         if self.tool!=self.switch_variable.get():
             self.tools(self.switch_variable.get())
@@ -438,6 +439,7 @@ class main:
                                     self.node=None
                                     self.selected=False
                                     break;    # depress mouse1
+
 ###############################################
 
 ###############################################
@@ -509,6 +511,7 @@ class main:
         else:
             messagebox.showerror("Error", "Wrong data in matrix")
             graf.adjacency_matrix={} #clears adj_matrix
+
 ###############################################
 
 ###############################################
@@ -760,7 +763,6 @@ class main:
             self.adj_list_nodes[index]=[]
             for keys in graf.nodes[index]:
                 self.adj_list_nodes[index].append(keys)
-
         for index in self.adj_list_nodes:
             self.node_listbox.insert(END,index)
 ###############################################
@@ -943,6 +945,10 @@ class main:
         self.graph_tests_is_eulerian=Button(self.graph_tests_buttons_frame, text="Eulerian Test",width=self.graph_tests_window_buttonwidth,command=self.graph_tests_is_eulerian_function)
         self.graph_tests_find_eulerian_cycle=Button(self.graph_tests_buttons_frame,justify=CENTER,wraplength=150, text="Search for eulerian cycle/path",width=self.graph_tests_window_buttonwidth,command=self.graph_tests_eulerian)
         self.graph_tests_hamilton_button=Button(self.graph_tests_buttons_frame,text="Hamiltons test",width=self.graph_tests_window_buttonwidth,command=self.graph_tests_hamilton)
+        self.graph_tests_BFS_entry=Entry(self.graph_tests_buttons_frame,justify="center")
+        self.graph_tests_BFS_button=Button(self.graph_tests_buttons_frame,text="BFS",width=self.graph_tests_window_buttonwidth,command=self.graph_test_BFS)
+        self.graph_tests_DFS_entry=Entry(self.graph_tests_buttons_frame,justify="center")
+        self.graph_tests_DFS_button=Button(self.graph_tests_buttons_frame,text="BFS",width=self.graph_tests_window_buttonwidth)
 
         n=0
 
@@ -954,7 +960,23 @@ class main:
 
         n+=1
 
-        self.graph_tests_hamilton_button.grid(row=n,column=0)
+        self.graph_tests_hamilton_button.grid(row=n,column=0,)
+
+        n+=1
+
+        self.graph_tests_BFS_entry.grid(row=n,column=0)
+
+        n+=1
+
+        self.graph_tests_BFS_button.grid(row=n,column=0)
+
+        n+=1
+
+        self.graph_tests_DFS_entry.grid(row=n,column=0)
+
+        n+=1
+
+        self.graph_tests_DFS_button.grid(row=n,column=0)
 
         ######## Canvas ##################
         self.graph_tests_canvas=Canvas(self.graph_tests_canvas_frame,width=400,height=300, bg="white")
@@ -985,6 +1007,9 @@ class main:
             self.graph_tests_print_text(text)
         else:
             messagebox.showerror("Error", "Graph has no nodes")
+
+    def graph_test_BFS(self):
+        self.graph_tests_print_text(self.BFS())
 
     def graph_tests_print_text(self,text):
         self.graph_tests_canvas.delete(ALL)
@@ -1028,13 +1053,26 @@ class main:
         self.graph_prints_display_adjacency_button=Button(self.graph_prints_display_buttons_frame, text="Print adjacency matrix",width=self.graph_prints_display_window_buttonwidth,command=self.graph_prints_display_adjacency)
         self.graph_prints_display_graph_prints_display_clear=Button(self.graph_prints_display_buttons_frame,justify=CENTER,wraplength=150, text="Clear",width=self.graph_prints_display_window_buttonwidth,command=self.graph_prints_display_clear)
         self.graph_prints_display_incidency_button=Button(self.graph_prints_display_buttons_frame,text="Print incidence matrix",width=self.graph_prints_display_window_buttonwidth,command=self.graph_prints_display_incidence)
-        self.graph_prints_display_adj_list_button=Button(self.graph_prints_display_buttons_frame,text="Print incidence matrix",width=self.graph_prints_display_window_buttonwidth,command=self.graph_prints_display_adj_list)
+        self.graph_prints_display_adj_list_button=Button(self.graph_prints_display_buttons_frame,text="Print adjacency list",width=self.graph_prints_display_window_buttonwidth,command=self.graph_prints_display_adj_list)
+        self.graph_prints_display_is_eulerian=Button(self.graph_prints_display_buttons_frame, text="Eulerian Test",width=self.graph_prints_display_window_buttonwidth,command=self.graph_prints_display_is_eulerian_function)
+        self.graph_prints_display_find_eulerian_cycle_entry=Entry(self.graph_prints_display_buttons_frame,justify="center")
+        self.graph_prints_display_find_eulerian_cycle=Button(self.graph_prints_display_buttons_frame,justify=CENTER,wraplength=150, text="Search for eulerian cycle/path",width=self.graph_prints_display_window_buttonwidth,command=self.graph_prints_display_eulerian)
+        self.graph_prints_display_hamilton_button=Button(self.graph_prints_display_buttons_frame,text="Hamiltons test",width=self.graph_prints_display_window_buttonwidth,command=self.graph_prints_display_hamilton)
+        self.graph_prints_display_BFS_entry=Entry(self.graph_prints_display_buttons_frame,justify="center")
+        self.graph_prints_display_BFS_button=Button(self.graph_prints_display_buttons_frame,text="BFS",width=self.graph_prints_display_window_buttonwidth,command=self.graph_prints_display_BFS)
+        self.graph_prints_display_DFS_entry=Entry(self.graph_prints_display_buttons_frame,justify="center")
+        self.graph_prints_display_DFS_button=Button(self.graph_prints_display_buttons_frame,text="DFS",width=self.graph_prints_display_window_buttonwidth,command=self.graph_prints_display_DFS)
+        self.graph_prints_display_critcal_edge=Button(self.graph_prints_display_buttons_frame,text="Critical edge",width=self.graph_prints_display_window_buttonwidth,command=self.graph_prints_display_critcal_edge_test)
+        self.graph_prints_display_SPW_entry_one=Entry(self.graph_prints_display_buttons_frame,justify="center")
+        self.graph_prints_display_SPW_entry_two=Entry(self.graph_prints_display_buttons_frame,justify="center")
+        self.graph_prints_display_SPW_button=Button(self.graph_prints_display_buttons_frame,text="Critical edge",width=self.graph_prints_display_window_buttonwidth,command=self.graph_prints_display_SPW)
+
 
         ###### TEXT ######
         self.text_window=Text(self.graph_prints_display_text_frame,bg="white",width=80)
         self.text_window.pack(fill=BOTH, expand=True)
 
-
+        ######################## GRID ############################
         n=0
 
         self.graph_prints_display_adjacency_button.grid(row=n ,column=0)
@@ -1049,37 +1087,146 @@ class main:
 
         n+=1
 
+        self.graph_prints_display_is_eulerian.grid(row=n ,column=0)
+
+        n+=1
+
+        self.graph_prints_display_find_eulerian_cycle_entry.grid(row=n,column=0)
+
+        n+=1
+
+        self.graph_prints_display_find_eulerian_cycle.grid(row=n,column=0)
+
+        n+=1
+
+        self.graph_prints_display_hamilton_button.grid(row=n,column=0)
+
+        n+=1
+
+        self.graph_prints_display_BFS_entry.grid(row=n,column=0)
+
+        n+=1
+
+        self.graph_prints_display_BFS_button.grid(row=n,column=0)
+
+        n+=1
+
+        self.graph_prints_display_DFS_entry.grid(row=n,column=0)
+
+        n+=1
+
+        self.graph_prints_display_DFS_button.grid(row=n,column=0)
+
+        n+=1
+
+        self.graph_prints_display_critcal_edge.grid(row=n,column=0)
+
+        n+=1
+
         self.graph_prints_display_graph_prints_display_clear.grid(row=n,column=0)
 
+        n+=1
 
+        self.graph_prints_display_SPW_entry_one.grid(row=n,column=0)
 
+        n+=1
+
+        self.graph_prints_display_SPW_entry_two.grid(row=n,column=0)
+
+        n+=1
+
+        self.graph_prints_display_SPW_button.grid(row=n,column=0)
+        #######################################################
 
     def graph_prints_display_clear(self):
         self.text_window.delete('1.0', END)
 
     def graph_prints_display_adj_list(self):
         if len(graf.nodes)>0:
-            self.graph_prints_display_text("Graphs adjacency list\r\n")
+            self.graph_prints_display_text("Graphs adjacency list")
             self.graph_prints_display_text(self.print_graph_adj_list())
+        else:
+            messagebox.showerror("Error", "Graph has no nodes")
 
     def graph_prints_display_adjacency(self):
         if len(graf.nodes)>0:
-            self.graph_prints_display_text("Graphs adjacency matrix\r\n")
+            self.graph_prints_display_text("Graphs adjacency matrix")
             self.graph_prints_display_text(self.print_graph_adj_matrix())
-            self.graph_prints_display_text("\r\n")
+
+        else:
+            messagebox.showerror("Error", "Graph has no nodes")
 
     def graph_prints_display_incidence(self):
         if len(graf.nodes)>0:
-            self.graph_prints_display_text("Graphs incidence matrix\r\n")
+            self.graph_prints_display_text("Graphs incidence matrix")
             self.graph_prints_display_text(self.print_graph_inc_matrix())
-            self.graph_prints_display_text("\r\n")
+        else:
+            messagebox.showerror("Error", "Graph has no nodes")
+
+    def graph_prints_display_is_eulerian_function(self):
+        if len(graf.nodes)>0:
+            test=self.eulerian_test()
+            if test==0:
+                text="Graph isn't eulerian"
+            if test==1:
+                text="Graph have eulerian cycle"
+            if test==2:
+                text="Graph have eulerian path"
+            self.graph_prints_display_text(text)
+        else:
+            messagebox.showerror("Error", "Graph has no nodes")
+
+    def graph_prints_display_eulerian(self):
+        if len(graf.nodes)>0:
+            self.graph_prints_display_text(self.printforall(self.graph_prints_display_find_eulerian_cycle_entry.get(),"No"))
+        else:
+            messagebox.showerror("Error", "Graph has no nodes")
+
+    def graph_prints_display_hamilton(self):
+        if len(graf.nodes)>0:
+            text=self.hamilton_test()
+            self.graph_prints_display_text(text)
+        else:
+            messagebox.showerror("Error", "Graph has no nodes")
+
+    def graph_prints_display_BFS(self):
+        if len(graf.nodes)>0:
+            self.graph_prints_display_text("Breadth First Search")
+            self.graph_prints_display_text(self.BFS(self.graph_prints_display_BFS_entry.get()))
+        else:
+            messagebox.showerror("Error", "Graph has no nodes")
+
+    def graph_prints_display_DFS(self):
+        if len(graf.nodes)>0:
+            self.graph_prints_display_text("Depth First Search")
+            self.graph_prints_display_text(self.DFS(self.graph_prints_display_DFS_entry.get()))
+        else:
+            messagebox.showerror("Error", "Graph has no nodes")
+
+    def graph_prints_display_critcal_edge_test(self):
+        if len(graf.nodes)>0:
+            self.graph_prints_display_text(self.critical_edge())
+        else:
+            messagebox.showerror("Error", "Graph has no nodes")
+    def graph_prints_display_SPW(self):
+        if len(graf.nodes)>1:
+            if self.graph_prints_display_SPW_entry_one.get() in graf.nodes and self.graph_prints_display_SPW_entry_two.get() in graf.nodes:
+                self.graph_prints_display_text(self.SPW(self.graph_prints_display_SPW_entry_one.get(),self.graph_prints_display_SPW_entry_two.get() in graf.nodes))
+            elif self.graph_prints_display_SPW_entry_one.get() in graf.nodes or self.graph_prints_display_SPW_entry_two.get() in graf.nodes:
+                self.graph_prints_display_text(self.SPW_all(self.graph_prints_display_SPW_entry_one.get()))
+            else:
+                messagebox.showerror("Error", "There are no such a nodes")
+        else:
+            messagebox.showerror("Error", "Graph has no nodes")
 
     def graph_prints_display_text(self,text):
         self.text_window.insert(END, text,("a"))
+        self.text_window.insert(END, "\r\n",("a"))
         self.text_window.tag_config("a",foreground="black",font="times 11")
         self.text_window.pack()
 
 ######## Create visited={}##################
+
     def createVisited(self):
         graf.convert_to_adj_list()
         visited={}
@@ -1127,15 +1274,18 @@ class main:
             if visited[i]==False:
                 self.DFSUtil(i,visited)
 
-############################################self.dev_window_frame.pack(fill=BOTH, expand=False)###
+############################################
 
 ###############################################
 ######    Euler path/cycle    ################
 
-    def printforall(self,var="yes"):
+    def printforall(self,var1="novariable",var="yes"):
         self.text=""
         graf.convert_to_adj_list()
-        u=list(graf.nodes)[0]
+        if var1!="novariable" and str(var1) in graf.nodes:
+            u=var1
+        else:
+            u=list(graf.nodes)[0]
         if self.eulerian_test()==1 or self.eulerian_test()==2:
             if self.eulerian_test()==1 and len(graf.edge_quantity)>0:
                 if var=="yes":
@@ -1151,7 +1301,7 @@ class main:
                 if len(graf.adj_list[i]) %2 != 0:
                     u=i
                     break
-            self.printEuler(u,print)
+            self.printEuler(u,var)
             if var!="yes":
                 return self.text
         else:
@@ -1323,9 +1473,13 @@ class main:
 ###############################################
 ######    Breadth First Search   ##############
 
-    def BFS(self):
+    def BFS(self,var="novariable"):
         self.temp_string=""
-        s=self.dev_bfs_entry.get()    #### temporary solution
+
+        if var!="novariable" and str(var) in graf.nodes:
+            s=var
+        else:
+            s=list(graf.nodes)[0]
         visited=self.createVisited()
         queue=[]
         queue.append(s)
@@ -1339,18 +1493,21 @@ class main:
                     queue.append(i)
                     visited[i]=True
         self.temp_string=self.temp_string[:-1]
-        print(self.temp_string)
+        return self.temp_string
 
 ###############################################
 ######    Depth First Search   ##############
 
-    def DFS(self):
+    def DFS(self,var="novariable"):
         self.temp_string=""
-        v=self.dev_dfs_entry.get()
+        if var!="novariable" and str(var) in graf.nodes:
+            v=var
+        else:
+            v=list(graf.nodes)[0]
         visited=self.createVisited()
         self.DFSfunction(v,visited)
         self.temp_string=self.temp_string[:-1]
-        print(self.temp_string)
+        return self.temp_string
 
     def DFSfunction(self,v,visited):
         visited[v]=True
@@ -1359,10 +1516,12 @@ class main:
         for i in graf.adj_list[v]:
             if visited[i]==False:
                 self.DFSfunction(i,visited)
+
 ###############################################
 ######### SEARCH for critcal edge #############
 
     def critical_edge(self):
+        self.text=""
         self.critical_edges=[]
         for node1 in graf.nodes:
             for node2 in graf.nodes:
@@ -1370,15 +1529,20 @@ class main:
                     self.consistency=True
                     graf.convert_to_adj_list()
                     self.isitcritical(node1,node2)
+
         if len(self.critical_edges)<1:
-            print("There is no critical edges")
+            self.text+="There is no critical edges"
+            return self.text
+        else:
+            print(self.text)
+            return self.text
 
     def isitcritical(self,node1,node2):
         visited=self.createVisited()
         self.isConsistent(visited,node1)
         for index in visited:
             if visited[index]==False:
-                print("Graph isn't consistent")
+                self.text="Graph isn't consistent"
                 self.consistency=False
                 break;
         if self.consistency==True:
@@ -1388,7 +1552,9 @@ class main:
             self.isConsistent(visited,node1)
             for index in visited:
                 if visited[index]==False:
-                    print("Edge ", node1+node2," is critical")
+                    self.text+="Edge "
+                    self.text+=str(node1)+str(node2)
+                    self.text+=" is critical\r\n"
                     self.critical_edges.append(node1+node2)
                     break;
             graf.add_edge_undirected(node1,node2)
@@ -1580,7 +1746,6 @@ class main:
         self.dev_SPW_for_all_node1.grid(row=20,column=0)
         self.dev_SPW_for_all_node2.grid(row=20,column=1)
         self.dev_shortest_path_wage_for_all.grid(row=20,column=2)
-
 
     def dev_add_node(self):
         if self.dev_add_node_entry_name.get() not in graf.nodes and self.dev_add_node_entry_cordX.get() and self.dev_add_node_entry_cordY.get():
