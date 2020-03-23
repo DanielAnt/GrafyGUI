@@ -14,7 +14,10 @@ class Graf:
         self.edgeCordsX= {}
         self.edgeCordsY= {}
         self.times_has_been_drawn={}
+        self.pointer={}   ##### for numerating nodes (important for conversion from list to matrix) #####
 
+
+################ Adding and removing stuff from graph ####################
     def add_node(self, node_1,cordX,cordY):
         node=str(node_1)
         self.nodes[node]=[]
@@ -122,6 +125,8 @@ class Graf:
         temp_quantity+=1
         self.edge_quantity[temp]=temp_quantity
 
+########### For creaing graph from adj matrix ##############
+
     def create_adj_matrix(self,index_1,keys):
         index=str(index_1)
         self.adjacency_matrix[index]=[]
@@ -135,10 +140,11 @@ class Graf:
             i+=1
         for index in self.adjacency_matrix:
             for keys in self.adjacency_matrix[index]:
-                if int(keys)==1:
-                    if index[0]+index[1] not in self.nodes[index[0]]:
+                if index[0]>=index[1]:
+                    for i in range(int(keys)):
                         self.add_edge_undirected(index[0],index[1]) #converts_matrix into graph
 
+######### Functions for creating graph from incidence matrix #########
     def create_inc_matrix(self, index_1,keys):
         index=str(index_1)
         self.incidence_matrix[index]=[]
@@ -164,6 +170,7 @@ class Graf:
                     node1=None
                     node2=None
 
+########### Utility stuff ############################
     def clear_graph(self):
         self.__init__() #clear graph
 
@@ -184,6 +191,8 @@ class Graf:
         self.cordsY[node].append(self.cordy)
         return float(self.cordy) # retruns cordY of node
 
+########### CONVERSIONS #########################
+
     def convert_to_adj_list(self):
         self.adj_list={}
         for index in self.nodes:
@@ -193,9 +202,44 @@ class Graf:
                     if index+index2==keys:
                         self.adj_list[str(index)].append(str(index2))
 
+    def convert_to_adj_matrix(self):
+        self.convert_to_adj_list()
+        i=0
+        for nodes in self.nodes:
+            self.pointer[nodes]=str(i)
+            i+=1
+        self.ignorednodes=[]
+        for node in self.nodes:
+            for key in self.nodes:
+                if key not in self.ignorednodes:
+                    if node+key in self.edge_quantity:
+                        self.adjacency_matrix[self.pointer[node]+self.pointer[key]]=self.edge_quantity[node+key]
+                        self.adjacency_matrix[self.pointer[key]+self.pointer[node]]=self.edge_quantity[node+key]
+                    else:
+                        self.adjacency_matrix[self.pointer[node]+self.pointer[key]]=0
+                        self.adjacency_matrix[self.pointer[key]+self.pointer[node]]=0
+            self.ignorednodes.append(node)
 
-
-
+    def convert_to_inc_matrix(self):
+        i=0
+        for nodes in self.nodes:
+            self.pointer[nodes]=str(i)
+            i+=1
+        i=0
+        self.ignorednodes=[]
+        for node in self.nodes:
+            for key in self.nodes:
+                if node+key not in self.ignorednodes:
+                    if node+key in self.edge_quantity:
+                        self.ignorednodes.append(node+key)
+                        self.ignorednodes.append(key+node)
+                        for quantity in range(int(self.edge_quantity[node+key])):
+                            for nodenumber in range(len(self.pointer)):
+                                if str(nodenumber)==str(self.pointer[node]) or str(nodenumber)==str(self.pointer[key]):
+                                    self.incidence_matrix[str(nodenumber)+str(i)]=1
+                                else:
+                                    self.incidence_matrix[str(nodenumber)+str(i)]=0
+                            i+=1
 
 
 

@@ -83,7 +83,7 @@ class main:
         self.testmenu= Menu(self.menu)
         self.menu.add_cascade(label='Tests', menu=self.testmenu)
         self.testmenu.add_command(label='Eulerian tests',command=self.graph_tests)
-        self.testmenu.add_command(label='Hamiltons test',command=self.graph_temp)
+        self.testmenu.add_command(label='Display Prints',command=self.graph_prints_display)
         self.testmenu.add_command(label='Searching',command=self.graph_temp)
         self.testmenu.add_command(label='Shortest paths',command=self.graph_temp)
         self.optionmenu = Menu(self.menu)
@@ -136,7 +136,75 @@ class main:
         self.print.delete(ALL)  #clear canvas without clearing graph
 
 ###############################################
+#########Printing Methods######################
 
+    def print_graph_adj_matrix(self):
+        if len(graf.nodes)>0:
+            graf.convert_to_adj_matrix()
+            length=sqrt(len(graf.adjacency_matrix))
+            first=True
+            text=""
+            for row in range(int(length)):
+                if first==True:
+                    text+="[ "
+                    first=False
+                else:
+                    text+="\r\n[ "
+                next=True
+                for column in range(int(length)):
+                    if str(row)+str(column) in graf.adjacency_matrix:
+                        if next==True:
+                            text+=str(graf.adjacency_matrix[str(row)+str(column)])
+                            next=False
+                        else:
+                            text+=" , "
+                            text+=str(graf.adjacency_matrix[str(row)+str(column)])
+                text+=" ]"
+            return text
+
+    def print_graph_inc_matrix(self):
+        if len(graf.nodes)>0:
+            graf.convert_to_inc_matrix()
+            length=sqrt(len(graf.incidence_matrix))
+            number_of_nodes=len(graf.pointer)
+            matrix_length=len(graf.incidence_matrix)
+            number_of_columns=matrix_length/number_of_nodes
+            first=True
+            text=""
+            for row in range(int(number_of_nodes)):
+                if first==True:
+                    text+="[ "
+                    first=False
+                else:
+                    text+="\r\n[ "
+                next=True
+                for column in range(int(number_of_columns)):
+                    if str(row)+str(column) in graf.incidence_matrix:
+                        if next==True:
+                            text+=str(graf.incidence_matrix[str(row)+str(column)])
+                            next=False
+                        else:
+                            text+=" , "
+                            text+=str(graf.incidence_matrix[str(row)+str(column)])
+                text+=" ]"
+            return text
+
+    def print_graph_adj_list(self):
+        if len(graf.nodes)>0:
+            text=""
+            graf.convert_to_adj_list()
+            for node in graf.adj_list:
+                text+=str(node)+" : ( "
+                first=True
+                for key in graf.adj_list[node]:
+                    if first==True:
+                        text+=str(key)
+                        first=False
+                    else:
+                        text+=", "
+                        text+=str(key)
+                text+=" )\r\n"
+            return text
 
 ###############################################
 #########Display Methods######################
@@ -283,7 +351,7 @@ class main:
         self.draw_edges()
         self.draw_nodes()
 
-###############################################
+    ###############################################
 
 ###############################################
 ####### MOUSE CANVAS FUNCTIONS################
@@ -421,24 +489,26 @@ class main:
     def matrix_adj_submit(self):
         self.clear_canvas()
         self.matrix_error=False
-        for index in self.entry_matrix:
-            for keys in self.entry_matrix[index].get():
-                if keys.isnumeric():
-                    if int(keys)==1 or int(keys)==0:
-                        graf.create_adj_matrix(index,keys)
+        length=sqrt(len(self.entry_matrix))
+        for row in range(int(length)):
+            for column in range(int(length)):
+                if self.entry_matrix[str(row)+str(column)].get().isnumeric():
+                    if self.entry_matrix[str(row)+str(column)].get()==self.entry_matrix[str(column)+str(row)].get():
+                        graf.create_adj_matrix(str(row)+str(column),self.entry_matrix[str(column)+str(row)].get())
                     else:
                         self.matrix_error=True
                         break;
                 else:
                     self.matrix_error=True
                     break;
+
         if self.matrix_error==False:
             graf.convert_adj_matrix(self.temp_NodeQuantity,self.draw_ratio)
             self.draw_graph()
             self.matrix_window.destroy() # submits entered matrix into graph and draws it
         else:
             messagebox.showerror("Error", "Wrong data in matrix")
-            graf.adjacency_matrix={} #submits matrix
+            graf.adjacency_matrix={} #clears adj_matrix
 ###############################################
 
 ###############################################
@@ -853,25 +923,26 @@ class main:
 ###############################################
 
 #############################################
-############# TESTS #########################
+############# FUNCTIONS TESTS ###############
 
     def graph_tests(self):
         self.graph_tests_window= Toplevel()
         self.graph_tests_window.grab_set()
-        self.graph_tests_window.resizable(False,False)
-        self.graph_tests_window.attributes("-topmost",True)
-        self.graph_tests_window.title('Eulerian Tests')
+        self.graph_tests_window.resizable(True,False)
+        self.graph_tests_window.attributes("-topmost", 1)
+        self.graph_tests_window.title('Tests')
+        self.graph_tests_window_buttonwidth=17
 
         ######### Frames ##################
         self.graph_tests_buttons_frame=Frame(self.graph_tests_window)
-        self.graph_tests_canvas_frame=Frame(self.graph_tests_window,width=300, height=300)
-        self.graph_tests_buttons_frame.pack(side="left",fill=BOTH, expand=True)
+        self.graph_tests_canvas_frame=Frame(self.graph_tests_window,width=400, height=300)
+        self.graph_tests_buttons_frame.pack(side="left",fill=BOTH, expand=False)
         self.graph_tests_canvas_frame.pack(side="left",fill=BOTH, expand=True)
 
         ####### Buttons ##################
-        self.graph_tests_is_eulerian=Button(self.graph_tests_buttons_frame, text="Eulerian Test",command=self.graph_tests_is_eulerian_function)
-        self.graph_tests_find_eulerian_cycle=Button(self.graph_tests_buttons_frame, text="Search for eulerian cycle/path",command=self.graph_tests_eulerian)
-        self.graph_tests_hamilton=Button(self.graph_tests_buttons_frame,text="Hamiltons test",command=self.graph_tests_hamilton)
+        self.graph_tests_is_eulerian=Button(self.graph_tests_buttons_frame, text="Eulerian Test",width=self.graph_tests_window_buttonwidth,command=self.graph_tests_is_eulerian_function)
+        self.graph_tests_find_eulerian_cycle=Button(self.graph_tests_buttons_frame,justify=CENTER,wraplength=150, text="Search for eulerian cycle/path",width=self.graph_tests_window_buttonwidth,command=self.graph_tests_eulerian)
+        self.graph_tests_hamilton_button=Button(self.graph_tests_buttons_frame,text="Hamiltons test",width=self.graph_tests_window_buttonwidth,command=self.graph_tests_hamilton)
 
         n=0
 
@@ -883,37 +954,130 @@ class main:
 
         n+=1
 
-        self.graph_tests_hamilton.grid(row=n,column=0)
+        self.graph_tests_hamilton_button.grid(row=n,column=0)
 
         ######## Canvas ##################
-        self.graph_tests_canvas=Canvas(self.graph_tests_canvas_frame,width=300,height=300, bg="white")
+        self.graph_tests_canvas=Canvas(self.graph_tests_canvas_frame,width=400,height=300, bg="white")
         self.graph_tests_canvas.pack(fill=BOTH,expand=True)
 
-
-
-
     def graph_tests_is_eulerian_function(self):
-        test=self.eulerian_test()
-        if test==0:
-            text="Graph isn't eulerian"
-        if test==1:
-            text="Graph have eulerian cycle"
-        if test==2:
-            text="Graph have eulerian path"
-        self.graph_tests_print_text(text)
+        if len(graf.nodes)>0:
+            test=self.eulerian_test()
+            if test==0:
+                text="Graph isn't eulerian"
+            if test==1:
+                text="Graph have eulerian cycle"
+            if test==2:
+                text="Graph have eulerian path"
+            self.graph_tests_print_text(text)
+        else:
+            messagebox.showerror("Error", "Graph has no nodes")
 
     def graph_tests_eulerian(self):
-        self.graph_tests_print_text(self.printforall("No"))
+        if len(graf.nodes)>0:
+            self.graph_tests_print_text(self.printforall("No"))
+        else:
+            messagebox.showerror("Error", "Graph has no nodes")
 
     def graph_tests_hamilton(self):
-        text=self.hamilton_test()
-        self.graph_tests_print_text(text)
+        if len(graf.nodes)>0:
+            text=self.hamilton_test()
+            self.graph_tests_print_text(text)
+        else:
+            messagebox.showerror("Error", "Graph has no nodes")
 
     def graph_tests_print_text(self,text):
         self.graph_tests_canvas.delete(ALL)
-        self.graph_tests_canvas.create_text(150,50,font="Times 10 italic bold",text=text)
+        if len(text)>50:
+            i=0
+            new_text=""
+            for char in text:
+                if char==" " and i>15:
+                    new_text+="\r\n"
+                    new_text+=char
+                    i=0
+                else:
+                    new_text+=char
+                i+=1
+
+            self.graph_tests_canvas.create_text(150,150,font="Times 10 bold",text=new_text)
+        else:
+            self.graph_tests_canvas.create_text(150,50,font="Times 10 bold",text=text)
+
 
 ###############################################
+
+#############################################
+############# FUNCTIONS PRINTS ##############
+
+    def graph_prints_display(self):
+        self.graph_prints_display_window= Toplevel()
+        self.graph_prints_display_window.grab_set()
+        self.graph_prints_display_window.resizable(True,True)
+        self.graph_prints_display_window.attributes("-topmost", 1)
+        self.graph_prints_display_window.title('Tests')
+        self.graph_prints_display_window_buttonwidth=17
+
+        ######### Frames ##################
+        self.graph_prints_display_buttons_frame=Frame(self.graph_prints_display_window)
+        self.graph_prints_display_text_frame=Frame(self.graph_prints_display_window)
+        self.graph_prints_display_buttons_frame.pack(side="left",fill=BOTH, expand=False)
+        self.graph_prints_display_text_frame.pack(side="left",fill=BOTH, expand=True)
+
+        ####### Buttons ##################
+        self.graph_prints_display_adjacency_button=Button(self.graph_prints_display_buttons_frame, text="Print adjacency matrix",width=self.graph_prints_display_window_buttonwidth,command=self.graph_prints_display_adjacency)
+        self.graph_prints_display_graph_prints_display_clear=Button(self.graph_prints_display_buttons_frame,justify=CENTER,wraplength=150, text="Clear",width=self.graph_prints_display_window_buttonwidth,command=self.graph_prints_display_clear)
+        self.graph_prints_display_incidency_button=Button(self.graph_prints_display_buttons_frame,text="Print incidence matrix",width=self.graph_prints_display_window_buttonwidth,command=self.graph_prints_display_incidence)
+        self.graph_prints_display_adj_list_button=Button(self.graph_prints_display_buttons_frame,text="Print incidence matrix",width=self.graph_prints_display_window_buttonwidth,command=self.graph_prints_display_adj_list)
+
+        ###### TEXT ######
+        self.text_window=Text(self.graph_prints_display_text_frame,bg="white",width=80)
+        self.text_window.pack(fill=BOTH, expand=True)
+
+
+        n=0
+
+        self.graph_prints_display_adjacency_button.grid(row=n ,column=0)
+
+        n+=1
+
+        self.graph_prints_display_incidency_button.grid(row=n,column=0)
+
+        n+=1
+
+        self.graph_prints_display_adj_list_button.grid(row=n,column=0)
+
+        n+=1
+
+        self.graph_prints_display_graph_prints_display_clear.grid(row=n,column=0)
+
+
+
+
+    def graph_prints_display_clear(self):
+        self.text_window.delete('1.0', END)
+
+    def graph_prints_display_adj_list(self):
+        if len(graf.nodes)>0:
+            self.graph_prints_display_text("Graphs adjacency list\r\n")
+            self.graph_prints_display_text(self.print_graph_adj_list())
+
+    def graph_prints_display_adjacency(self):
+        if len(graf.nodes)>0:
+            self.graph_prints_display_text("Graphs adjacency matrix\r\n")
+            self.graph_prints_display_text(self.print_graph_adj_matrix())
+            self.graph_prints_display_text("\r\n")
+
+    def graph_prints_display_incidence(self):
+        if len(graf.nodes)>0:
+            self.graph_prints_display_text("Graphs incidence matrix\r\n")
+            self.graph_prints_display_text(self.print_graph_inc_matrix())
+            self.graph_prints_display_text("\r\n")
+
+    def graph_prints_display_text(self,text):
+        self.text_window.insert(END, text,("a"))
+        self.text_window.tag_config("a",foreground="black",font="times 11")
+        self.text_window.pack()
 
 ######## Create visited={}##################
     def createVisited(self):
@@ -1004,7 +1168,7 @@ class main:
                 if var=="yes":
                     print(u,"-",v)
                 else:
-                    self.text+=u+"-"+v+" "
+                    self.text+=u+"->"+v+" "
                 self.rmvEdge(u,v)
                 self.printEuler(v,var)
 
@@ -1076,7 +1240,7 @@ class main:
             self.isConsistent(visited, u)
         for index in visited:
             if visited[index]==False:
-#                print("Graph isn't consistent")
+        #        print("Graph isn't consistent")
                 self.consistency=False
                 self.text="Graph isn't consistent"
                 return self.text
@@ -1122,21 +1286,22 @@ class main:
                 if self.u in graf.adj_list[index]:
                     if len(graf.nodes[self.u])>1:
                         self.path.append(self.u)
-        #               print("Found cycle")
-        #            else:
-        #           print("Found path")
-        #           print(self.path)
+                        self.text="Found cycle"
+                    else:
+                        self.text="Found path"
+            #        print(self.path)
                     self.text=self.convert_to_text(self.path)
                     return self.text
                 else:
-        #           print("Longest path")
-        #           print(self.longestPath)
+            #        print("Longest path")
+            #        print(self.longestPath)
                     self.text=self.convert_to_text(self.longestPath)
                     return self.text
             else:
                 h=self.path.pop()
                 if len(self.path)==0:
-        #           print(self.longestPath)
+            #        print("Longest path",self.longestPath)
+                    self.text="Path"
                     self.text=self.convert_to_text(self.longestPath)
                     return self.text
                 else:
@@ -1145,14 +1310,14 @@ class main:
 
 
     def convert_to_text(self,converted_object):
-        self.text=""
         first=True
         for key in converted_object:
             if first==True:
+                self.text+=" "
                 self.text+=key
                 first=False
             else:
-                self.text+="->"+key
+                self.text+="-> "+key
         return self.text
 
 ###############################################
@@ -1340,9 +1505,9 @@ class main:
         self.dev_print_cordsX= Button(self.dev_window_frame,text="Print cordsX",command=lambda: print(graf.cordsX) )
         self.dev_print_cordsY= Button(self.dev_window_frame,text="Print cordsY",command=lambda: print(graf.cordsY))
         self.dev_print_edge_quantity= Button(self.dev_window_frame,text="Print edge quantity",command=lambda: print(graf.edge_quantity))
-        self.dev_print_adjacencymatrix= Button(self.dev_window_frame,text="Print adjacencymatrix",command=lambda: print(graf.adjacency_matrix))
-        self.dev_print_incidencematrix= Button(self.dev_window_frame,text="Print incmatrix",command=lambda: print(graf.incidence_matrix))
-        self.dev_print_euler= Button(self.dev_window_frame,text="Eulerian Test",command=self.eulerian_test)
+        self.dev_print_adjacencymatrix= Button(self.dev_window_frame,text="Print ADJACENCY",command= self.print_graph_adj_matrix)
+        self.dev_print_incidencematrix= Button(self.dev_window_frame,text="Print var incmatrix",command=lambda: print(graf.incidence_matrix))
+        self.dev_print_euler= Button(self.dev_window_frame,text="Print INCIDENCE MATRIX",command=self.print_graph_inc_matrix)
         self.dev_print_adj_list= Button(self.dev_window_frame,text="Print adj_list",command=lambda: print(graf.adj_list))
         self.dev_print_euler_cycles= Button(self.dev_window_frame,text="Eulerian cycles/paths",command=self.printforall)
         self.dev_add_node_label=Label(self.dev_window_frame,text="ADD NODE")
@@ -1359,7 +1524,7 @@ class main:
         self.dev_remove_edge_entry_node1= Entry(self.dev_window_frame,width=4)
         self.dev_remove_edge_entry_node2= Entry(self.dev_window_frame,width=4)
         self.dev_remove_edge_button_submit= Button(self.dev_window_frame,text="Submit", command=self.dev_remove_edge,width=4)
-        self.dev_hamilton= Button(self.dev_window_frame,text="Hamilton test", command=self.hamilton_test,width=15)
+        self.dev_hamilton= Button(self.dev_window_frame,text="Convert to adj mat", command= graf.convert_to_adj_matrix,width=15)
         self.dev_bfs_label=Label(self.dev_window_frame,text="BFS")
         self.dev_bfs_entry= Entry(self.dev_window_frame,width=4)
         self.dev_bfs_button= Button(self.dev_window_frame,width=15,text="Submit", command=self.BFS)
