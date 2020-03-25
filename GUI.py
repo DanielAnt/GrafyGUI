@@ -1,9 +1,11 @@
 from tkinter import *
 from tkinter import ttk, colorchooser, messagebox
+from tkinter.filedialog import askopenfilename, asksaveasfile
 from Grafy import *
 from PIL import Image, ImageTk
 from math import *
 import sys
+import time
 sys.setrecursionlimit(2000)
 
 
@@ -14,7 +16,7 @@ class main:
         self.master = master
         self.color_fg = 'black'
         self.color_bg = 'white'
-        self.draw_ratio=int(1)
+        self.draw_ratio=int(2)
         self.switch_variable = StringVar(value="")
         self.selected=False
         self.remove=False
@@ -62,8 +64,10 @@ class main:
 
 ############ Canvas #############################
 
-        self.print=Canvas(self.master,height=400,width=300, bg=self.color_bg)
-        self.print.pack(side=LEFT,fill=Y,expand=False)
+    #    self.print=Canvas(self.master,height=400,width=300, bg=self.color_bg)
+    #    self.print.pack(side=LEFT,fill=Y,expand=False)
+        self.print_space=Text(self.master,width=10,bg="white",relief=SUNKEN)
+        self.print_space.pack(side=LEFT,fill=Y,expand=False)
 
         self.c=Canvas(self.master,width=500,height=400,bg=self.color_bg,)
         self.c.pack(fill=BOTH,expand=True)
@@ -81,11 +85,13 @@ class main:
         self.graphmenu.add_command(label='Adjacency list',command=self.graph_add_adjlist)
         self.graphmenu.add_command(label='Type in',command=self.type_in)
         self.testmenu= Menu(self.menu)
-        self.menu.add_cascade(label='Tests', menu=self.testmenu)
-        self.testmenu.add_command(label='Eulerian tests',command=self.graph_tests)
-        self.testmenu.add_command(label='Display Prints',command=self.graph_prints_display)
-        self.testmenu.add_command(label='Searching',command=self.graph_temp)
-        self.testmenu.add_command(label='Shortest paths',command=self.graph_temp)
+        self.menu.add_cascade(label='Functions', menu=self.testmenu)
+        self.testmenu.add_command(label='Display paths',command=self.graph_tests)
+        self.testmenu.add_command(label='Print output',command=self.graph_prints_display)
+        self.coloring_graph = Menu(self.menu)
+        self.menu.add_cascade(label='Coloring Graph', menu=self.coloring_graph)
+        self.coloring_graph.add_command(label='By adjacency matrix',command=lambda: self.coloring("adj_mat"))
+        self.coloring_graph.add_command(label='By node deg',command=lambda: self.coloring("node_deg"))
         self.optionmenu = Menu(self.menu)
         self.menu.add_cascade(label='Options',menu=self.optionmenu)
         self.optionmenu.add_command(label='Clear',command=self.clear_canvas)
@@ -129,11 +135,11 @@ class main:
     def clear_canvas(self):
         self.c.delete(ALL)
         graf.clear_graph()
-        self.print.delete(ALL)  # clears canvas and graph
+    #    self.print.delete(ALL)  # clears canvas and graph
 
     def clear_canvas_without_removing_graph(self):
         self.c.delete(ALL)
-        self.print.delete(ALL)  #clear canvas without clearing graph
+    #    self.print.delete(ALL)  #clear canvas without clearing graph
 
 ###############################################
 #########Printing Methods######################
@@ -165,7 +171,6 @@ class main:
     def print_graph_inc_matrix(self):
         if len(graf.nodes)>0:
             graf.convert_to_inc_matrix()
-            length=sqrt(len(graf.incidence_matrix))
             number_of_nodes=len(graf.pointer)
             matrix_length=len(graf.incidence_matrix)
             number_of_columns=matrix_length/number_of_nodes
@@ -212,7 +217,7 @@ class main:
     def draw_nodes(self):
         for source in graf.nodes:
             self.c.create_image(graf.return_X(source),graf.return_Y(source), image=photo)
-            self.c.create_text(graf.return_X(source)+10,graf.return_Y(source)-15,fill="darkblue",font="Times 10 italic bold", text=source)    #draw graph nodes
+            self.c.create_text(graf.return_X(source)+10,graf.return_Y(source)-15,fill="darkblue",font="Times 10 bold", text=source)    #draw graph nodes
 
     def draw_edges(self):
         graf.convert_to_adj_list()
@@ -222,10 +227,22 @@ class main:
         for node1 in graf.adj_list:
             for node2 in graf.adj_list[node1]:
                     #self.c.create_line(graf.cordsX[node1],graf.cordsY[node1],graf.cordsX[node2],graf.cordsY[node2],width=1,fill="red",smooth=True)    #draw graph edges
-                    self.create_line_arc(node1,node2)
+                    self.create_line_arc(node1,node2,canvas)
 
     def print_graph(self):
-        self.print.delete(ALL)
+        #self.print.delete(ALL)
+        #self.text=graf.name
+        #self.text+="\n"
+        #for source in graf.nodes:
+#            self.text+=str(source)
+#            self.text+=":\n"
+#            for keys in graf.nodes[source]:
+#                self.text+=str(keys)
+#                if self.wage_var.get()==1:
+#                    self.text+="-"
+#                    self.text+=str(graf.edge_wage[keys])
+#                self.text+="\n"
+        #self.print.create_text(50,200,fill="darkblue",font="Times 10 bold", text=self.text)   #prints graph on canvas
         self.text=graf.name
         self.text+="\n"
         for source in graf.nodes:
@@ -237,17 +254,23 @@ class main:
                     self.text+="-"
                     self.text+=str(graf.edge_wage[keys])
                 self.text+="\n"
-        self.print.create_text(50,200,fill="darkblue",font="Times 10 italic bold", text=self.text)   #prints graph on canvas
+            self.text+="\n"
+        self.print_space.delete("1.0",END)
+        self.print_space.insert(INSERT, self.text, ("a"))
+        self.print_space.tag_config("a",foreground="black",font="times 11")
 
     def create_line_arc(self,node1,node2):
         if node1==node2:
-            #self.c.create_oval(graf.return_X(node1)+25,graf.return_Y(node1)+25,graf.return_X(node1),graf.return_Y(node1))
-            self.c.create_line(graf.return_X(node1)+5,graf.return_Y(node1)+5,graf.return_X(node1),graf.return_Y(node1)-35,graf.return_X(node1)-35,graf.return_Y(node1)-35,graf.return_X(node1)-35,graf.return_Y(node1),graf.return_X(node2)+5,graf.return_Y(node2)+5,width=1,fill="black",smooth=True)    #draw graph edges
-
-
+            self.temp=graf.times_has_been_drawn[node1+node2]
+            if self.temp%2==0:
+                self.c.create_oval(graf.return_X(node1)-15-5*self.temp,graf.return_Y(node1)+15+5*self.temp,graf.return_X(node1)+1*self.temp,graf.return_Y(node1)-1*self.temp,width=2)
+            else:
+                self.c.create_oval(graf.return_X(node1)-15-5*(self.temp-1),graf.return_Y(node1)-15-5*(self.temp-1),graf.return_X(node1)+1*self.temp,graf.return_Y(node1)+1*self.temp,width=2)
+                #self.c.create_line(graf.return_X(node1)+5,graf.return_Y(node1)+5,graf.return_X(node1),graf.return_Y(node1)-35,graf.return_X(node1)-35,graf.return_Y(node1)-35,graf.return_X(node1)-35,graf.return_Y(node1),graf.return_X(node2)+5,graf.return_Y(node2)+5,width=1,fill="black",smooth=True)    #draw graph edges
+            self.temp+=1
+            graf.times_has_been_drawn[node1+node2]=self.temp
         else:
-            if graf.edge_quantity[node1+node2]==1 and graf.times_has_been_drawn[node1+node2]<graf.edge_quantity[node1+node2]:
-                z=10
+            if graf.times_has_been_drawn[node1+node2]==0 and graf.times_has_been_drawn[node1+node2]<graf.edge_quantity[node1+node2]:
                 x=graf.return_X(node1)
                 y=graf.return_Y(node1)
                 x1=graf.return_X(node2)
@@ -257,6 +280,7 @@ class main:
                 if y==y1:
                     y+=1
                 if self.wage_var.get()==1:
+                    z=10
                     ymid=(y+y1)/2
                     xmid=(x+x1)/2
                     a1=-(x-x1)/(y-y1)
@@ -271,7 +295,7 @@ class main:
                     Y_wynik2=a1*X_wynik2+b1
                 self.c.create_line(graf.return_X(node1),graf.return_Y(node1),graf.return_X(node2),graf.return_Y(node2),width=1,fill="black",smooth=True)    #draw graph edges
                 if self.wage_var.get()==1:
-                    self.c.create_text(X_wynik2,Y_wynik2,fill="darkblue",font="Times 10 italic bold", text=graf.edge_wage[node1+node2])
+                    self.c.create_text(X_wynik2,Y_wynik2,fill="darkblue",font="Times 10 bold", text=graf.edge_wage[node1+node2])
                 self.temp=graf.times_has_been_drawn[node1+node2]
                 self.temp+=1
                 graf.times_has_been_drawn[node1+node2]=self.temp
@@ -280,15 +304,15 @@ class main:
                 if graf.times_has_been_drawn[node1+node2] < graf.edge_quantity[node1+node2]:
                     ratio = graf.edge_quantity[node1+node2]-graf.times_has_been_drawn[node1+node2]
                     if ratio<=2:
-                        z=15
+                        z=25
                     if ratio>2 and ratio<=4:
-                        z=30
+                        z=45
                     if ratio>4 and ratio<=6:
-                        z=50
+                        z=65
                     if ratio>6 and ratio<=8:
-                        z=70
+                        z=85
                     if ratio>8:
-                        z=90
+                        z=105
                     x=graf.return_X(node1)
                     y=graf.return_Y(node1)
                     x1=graf.return_X(node2)
@@ -351,7 +375,7 @@ class main:
         self.draw_edges()
         self.draw_nodes()
 
-    ###############################################
+###############################################
 
 ###############################################
 ####### MOUSE CANVAS FUNCTIONS################
@@ -566,24 +590,28 @@ class main:
     def matrix_inc_submit(self):
         self.clear_canvas()
         self.matrix_error=False
-        for index in self.entry_matrix:
-            for keys in self.entry_matrix[index].get():
-                if keys.isnumeric():
-                    if int(keys)==1 or int(keys)==0:
-                        graf.create_inc_matrix(index,keys)
+        for column in range(self.temp_EdgeQuantity):
+            i=0
+            for row in range(self.temp_NodeQuantity):
+                i+=int(self.entry_matrix[str(row)+str(column)].get())
+                if self.entry_matrix[str(row)+str(column)].get().isnumeric():
+                    if int(self.entry_matrix[str(row)+str(column)].get())==1 or int(self.entry_matrix[str(row)+str(column)].get())==0:
+                        graf.create_inc_matrix(str(row)+str(column),self.entry_matrix[str(row)+str(column)].get())
                     else:
                         self.matrix_error=True
                         break;
                 else:
                     self.matrix_error=True
                     break;
+            if i!=2 and i!=0:
+                print("to",i)
+                self.matrix_error=True
+                break
         if self.matrix_error==False:
             graf.convert_inc_matrix(self.temp_NodeQuantity,self.temp_EdgeQuantity,self.draw_ratio)
             self.draw_graph()
-
             self.matrix_window.destroy() # submits entered matrix into graph and draws it
         else:
-            messagebox.showerror("Error", "Wrong data in matrix")
             graf.incidence_matrix={} #submits matrix
 
 ###############################################
@@ -930,7 +958,7 @@ class main:
     def graph_tests(self):
         self.graph_tests_window= Toplevel()
         self.graph_tests_window.grab_set()
-        self.graph_tests_window.resizable(True,False)
+    #    self.graph_tests_window.resizable(False,False)
         self.graph_tests_window.attributes("-topmost", 1)
         self.graph_tests_window.title('Tests')
         self.graph_tests_window_buttonwidth=17
@@ -942,19 +970,14 @@ class main:
         self.graph_tests_canvas_frame.pack(side="left",fill=BOTH, expand=True)
 
         ####### Buttons ##################
-        self.graph_tests_is_eulerian=Button(self.graph_tests_buttons_frame, text="Eulerian Test",width=self.graph_tests_window_buttonwidth,command=self.graph_tests_is_eulerian_function)
         self.graph_tests_find_eulerian_cycle=Button(self.graph_tests_buttons_frame,justify=CENTER,wraplength=150, text="Search for eulerian cycle/path",width=self.graph_tests_window_buttonwidth,command=self.graph_tests_eulerian)
         self.graph_tests_hamilton_button=Button(self.graph_tests_buttons_frame,text="Hamiltons test",width=self.graph_tests_window_buttonwidth,command=self.graph_tests_hamilton)
-        self.graph_tests_BFS_entry=Entry(self.graph_tests_buttons_frame,justify="center")
-        self.graph_tests_BFS_button=Button(self.graph_tests_buttons_frame,text="BFS",width=self.graph_tests_window_buttonwidth,command=self.graph_test_BFS)
-        self.graph_tests_DFS_entry=Entry(self.graph_tests_buttons_frame,justify="center")
-        self.graph_tests_DFS_button=Button(self.graph_tests_buttons_frame,text="BFS",width=self.graph_tests_window_buttonwidth)
+    #    self.graph_tests_BFS_entry=Entry(self.graph_tests_buttons_frame,justify="center")
+    #    self.graph_tests_BFS_button=Button(self.graph_tests_buttons_frame,text="BFS",width=self.graph_tests_window_buttonwidth,command=self.graph_test_BFS)
+    #    self.graph_tests_DFS_entry=Entry(self.graph_tests_buttons_frame,justify="center")
+    #    self.graph_tests_DFS_button=Button(self.graph_tests_buttons_frame,text="BFS",width=self.graph_tests_window_buttonwidth)
 
         n=0
-
-        self.graph_tests_is_eulerian.grid(row=n ,column=0)
-
-        n+=1
 
         self.graph_tests_find_eulerian_cycle.grid(row=n,column=0)
 
@@ -962,72 +985,234 @@ class main:
 
         self.graph_tests_hamilton_button.grid(row=n,column=0,)
 
-        n+=1
+    #    n+=1
 
-        self.graph_tests_BFS_entry.grid(row=n,column=0)
+    #    self.graph_tests_BFS_entry.grid(row=n,column=0)
 
-        n+=1
+    #    n+=1
 
-        self.graph_tests_BFS_button.grid(row=n,column=0)
+    #    self.graph_tests_BFS_button.grid(row=n,column=0)
 
-        n+=1
+    #    n+=1
 
-        self.graph_tests_DFS_entry.grid(row=n,column=0)
+    #    self.graph_tests_DFS_entry.grid(row=n,column=0)
 
-        n+=1
+    #    n+=1
 
-        self.graph_tests_DFS_button.grid(row=n,column=0)
+    #    self.graph_tests_DFS_button.grid(row=n,column=0)
 
         ######## Canvas ##################
         self.graph_tests_canvas=Canvas(self.graph_tests_canvas_frame,width=400,height=300, bg="white")
         self.graph_tests_canvas.pack(fill=BOTH,expand=True)
-
-    def graph_tests_is_eulerian_function(self):
-        if len(graf.nodes)>0:
-            test=self.eulerian_test()
-            if test==0:
-                text="Graph isn't eulerian"
-            if test==1:
-                text="Graph have eulerian cycle"
-            if test==2:
-                text="Graph have eulerian path"
-            self.graph_tests_print_text(text)
-        else:
-            messagebox.showerror("Error", "Graph has no nodes")
+        self.graph_tests_text=Text(self.graph_tests_canvas_frame,height=1)
+        self.graph_tests_text.pack(side=BOTTOM)
 
     def graph_tests_eulerian(self):
         if len(graf.nodes)>0:
-            self.graph_tests_print_text(self.printforall("No"))
+            self.graph_tests_canvas.delete(ALL)
+            test=self.eulerian_test()
+            if test==0:
+                displayed_text="Graph isn't eulerian"
+            if test==1:
+                displayed_text="Graph has eulerian cycle"
+            if test==2:
+                displayed_text="Graph has eulerian path"
+            self.graph_tests_text.delete("1.0",END)
+            self.graph_tests_text.insert(INSERT, displayed_text)
+            if test>0:
+                self.graph_tests_draw_nodes(self.graph_tests_canvas)
+                self.graph_tests_canvas.update()
+                time.sleep(2)
+                text=self.printforall("novariable","draw")
+                text=text.splitlines()
+                self.graph_tests_prepare_for_drawing()
+                first=True
+                for line in text:
+                    if first==True:
+                        first=False
+                        continue
+                    else:
+                        nodes=line.split()
+                        i=0
+                        for node in nodes:
+                            if i==0:
+                                node1=str(node)
+                                displayed_text+=" "+node1+"->"
+                            if i==1:
+                                node2=str(node)
+                                displayed_text+=node2
+                            i+=1
+                        self.graph_tests_create_line(node1,node2,self.graph_tests_canvas)
+                        self.graph_tests_text.delete("1.0",END)
+                        self.graph_tests_text.insert(INSERT, displayed_text)
+                        self.graph_tests_canvas.update()
+                        time.sleep(2)
+
         else:
             messagebox.showerror("Error", "Graph has no nodes")
 
     def graph_tests_hamilton(self):
         if len(graf.nodes)>0:
+            self.graph_tests_canvas.delete(ALL)
+            self.graph_tests_draw_nodes(self.graph_tests_canvas)
+            self.graph_tests_canvas.update()
+            time.sleep(2)
             text=self.hamilton_test()
-            self.graph_tests_print_text(text)
+            self.graph_tests_prepare_for_drawing()
+            first=True
+            text=text.splitlines()
+            for line in text:
+                if first==True:
+                    displayed_text=line+" "
+                    self.graph_tests_text.delete("1.0",END)
+                    self.graph_tests_text.insert(INSERT, displayed_text)
+                    first=False
+                    continue
+                else:
+                    nodes=line.split()
+                    first=True
+                    for node in nodes:
+                        displayed_text+=node+" "
+                        if first==True:
+                            start_node=str(node)
+                            first=False
+                        elif first!=True and node in graf.nodes:
+                            self.graph_tests_create_line(start_node,node,self.graph_tests_canvas)
+                            self.graph_tests_text.delete("1.0",END)
+                            self.graph_tests_text.insert(INSERT, displayed_text)
+                            self.graph_tests_canvas.update()
+                            time.sleep(2)
+                            start_node=node
         else:
             messagebox.showerror("Error", "Graph has no nodes")
 
     def graph_test_BFS(self):
         self.graph_tests_print_text(self.BFS())
 
-    def graph_tests_print_text(self,text):
-        self.graph_tests_canvas.delete(ALL)
-        if len(text)>50:
-            i=0
-            new_text=""
-            for char in text:
-                if char==" " and i>15:
-                    new_text+="\r\n"
-                    new_text+=char
-                    i=0
-                else:
-                    new_text+=char
-                i+=1
+    def graph_tests_print(self,text):
+        self.graph_tests_canvas.create_line()
 
-            self.graph_tests_canvas.create_text(150,150,font="Times 10 bold",text=new_text)
+    def graph_tests_draw_nodes(self,canvas,ratio=1):
+        for source in graf.nodes:
+            canvas.create_image(graf.return_X(source),graf.return_Y(source), image=photo)
+            canvas.create_text(graf.return_X(source)+10,graf.return_Y(source)-15,fill="darkblue",font="Times 10 bold", text=source)
+
+    def graph_tests_prepare_for_drawing(self):
+        graf.convert_to_adj_list()
+        graf.times_has_been_drawn={}
+        for index in graf.edge_quantity:
+            graf.times_has_been_drawn[index]=0
+
+    def graph_tests_create_line(self,node1,node2,canvas,ratio=1):
+        node_x=graf.return_X(node1)
+        node_y=graf.return_Y(node1)
+        node2_x=graf.return_X(node2)
+        node2_y=graf.return_Y(node2)
+        if node1==node2:
+            canvas.create_line(node_x+5,node_y+5,node_x,node_y-35,node_x-35,node_y-35,node_x-35,node_y,node2_x+5,node2_y+5,width=2, arrow=LAST,fill="black",smooth=True)    #draw graph edges
+            graf.times_has_been_drawn[node1+node2]=self.temp
+            graf.times_has_been_drawn[node2+node1]=self.temp
+
         else:
-            self.graph_tests_canvas.create_text(150,50,font="Times 10 bold",text=text)
+            if graf.times_has_been_drawn[node1+node2]==0 and graf.times_has_been_drawn[node1+node2]<graf.edge_quantity[node1+node2]:
+                z=10
+                x=node_x
+                y=node_y
+                x1=node2_x
+                y1=node2_y
+                if x==x1:
+                    x+=1
+                if y==y1:
+                    y+=1
+                if self.wage_var.get()==1:
+                    ymid=(y+y1)/2
+                    xmid=(x+x1)/2
+                    a1=-(x-x1)/(y-y1)
+                    b1=ymid-xmid*a1
+                    VarA=float((1+a1**2))
+                    VarB=float(((-2)*xmid+2*a1*b1-2*a1*ymid))
+                    VarC=float((xmid**2)+(b1**2)-2*b1*ymid+(ymid**2)-(z**2))
+                    DELTA=float(VarB**2-4*VarA*VarC)
+                    X_wynik1=float((-VarB+sqrt(DELTA))/(2*VarA))
+                    X_wynik2=float((-VarB-sqrt(DELTA))/(2*VarA))
+                    Y_wynik1=a1*X_wynik1+b1
+                    Y_wynik2=a1*X_wynik2+b1
+                canvas.create_line(node_x,node_y,node2_x,node2_y,width=2, arrow=LAST,fill="black",smooth=True)    #draw graph edges
+                if self.wage_var.get()==1:
+                    canvas.create_text(X_wynik2,Y_wynik2,fill="darkblue",font="Times 10 italic bold", text=graf.edge_wage[node1+node2])
+                self.temp=graf.times_has_been_drawn[node1+node2]
+                self.temp+=1
+                graf.times_has_been_drawn[node1+node2]=self.temp
+                graf.times_has_been_drawn[node2+node1]=self.temp
+            else:
+                if graf.times_has_been_drawn[node1+node2] < graf.edge_quantity[node1+node2]:
+                    ratio = graf.edge_quantity[node1+node2]-graf.times_has_been_drawn[node1+node2]
+                    if ratio<=2:
+                        z=20
+                    if ratio>2 and ratio<=4:
+                        z=35
+                    if ratio>4 and ratio<=6:
+                        z=50
+                    if ratio>6 and ratio<=8:
+                        z=70
+                    if ratio>8:
+                        z=90
+                    x=node_x
+                    y=node_y
+                    x1=node2_x
+                    y1=node2_y
+                    if x==x1:
+                        x+=1
+                    if y==y1:
+                        y+=1
+                    ymid=(y+y1)/2
+                    xmid=(x+x1)/2
+                    a1=-(x-x1)/(y-y1)
+                    b1=ymid-xmid*a1
+                    VarA=float((1+a1**2))
+                    VarB=float(((-2)*xmid+2*a1*b1-2*a1*ymid))
+                    VarC=float((xmid**2)+(b1**2)-2*b1*ymid+(ymid**2)-(z**2))
+                    DELTA=float(VarB**2-4*VarA*VarC)
+                    X_wynik1=float((-VarB+sqrt(DELTA))/(2*VarA))
+                    X_wynik2=float((-VarB-sqrt(DELTA))/(2*VarA))
+                    Y_wynik1=a1*X_wynik1+b1
+                    Y_wynik2=a1*X_wynik2+b1
+                    if self.wage_var.get()==1:
+                        z=z+10
+                        x=node_x
+                        y=node_y
+                        x1=node2_x
+                        y1=node2_y
+                        if x==x1:
+                            x+=1
+                        if y==y1:
+                            y+=1
+                        ymid=(y+y1)/2
+                        xmid=(x+x1)/2
+                        a1=-(x-x1)/(y-y1)
+                        b1=ymid-xmid*a1
+                        VarA=float((1+a1**2))
+                        VarB=float(((-2)*xmid+2*a1*b1-2*a1*ymid))
+                        VarC=float((xmid**2)+(b1**2)-2*b1*ymid+(ymid**2)-(z**2))
+                        DELTA=float(VarB**2-4*VarA*VarC)
+                        X_wage1=float((-VarB+sqrt(DELTA))/(2*VarA))
+                        X_wage2=float((-VarB-sqrt(DELTA))/(2*VarA))
+                        Y_wage1=a1*X_wynik1+b1
+                        Y_wage2=a1*X_wynik2+b1
+                    if ratio % 2 == 0:
+                        canvas.create_line(node_x,node_y,X_wynik1,Y_wynik1,node2_x,node2_y,width=2, arrow=LAST,fill="black",smooth=True)    #draw graph edges
+                        if self.wage_var.get()==1:
+                            canvas.create_text(X_wage1,Y_wage1,fill="darkblue",font="Times 10 italic bold", text=graf.edge_wage[node1+node2])
+                    else:
+                        canvas.create_line(node_x,node_y,X_wynik2,Y_wynik2,node2_x,node2_y,width=2, arrow=LAST,fill="black",smooth=True)    #draw graph edges
+                        if self.wage_var.get()==1:
+                            canvas.create_text(X_wage2,Y_wage2,fill="darkblue",font="Times 10 italic bold", text=graf.edge_wage[node1+node2])
+
+
+                    self.temp=graf.times_has_been_drawn[node1+node2]
+                    self.temp+=1
+                    graf.times_has_been_drawn[node1+node2]=self.temp
+                    graf.times_has_been_drawn[node2+node1]=self.temp
 
 
 ###############################################
@@ -1065,7 +1250,7 @@ class main:
         self.graph_prints_display_critcal_edge=Button(self.graph_prints_display_buttons_frame,text="Critical edge",width=self.graph_prints_display_window_buttonwidth,command=self.graph_prints_display_critcal_edge_test)
         self.graph_prints_display_SPW_entry_one=Entry(self.graph_prints_display_buttons_frame,justify="center")
         self.graph_prints_display_SPW_entry_two=Entry(self.graph_prints_display_buttons_frame,justify="center")
-        self.graph_prints_display_SPW_button=Button(self.graph_prints_display_buttons_frame,text="Critical edge",width=self.graph_prints_display_window_buttonwidth,command=self.graph_prints_display_SPW)
+        self.graph_prints_display_SPW_button=Button(self.graph_prints_display_buttons_frame,text="Shortest Path",width=self.graph_prints_display_window_buttonwidth,command=self.graph_prints_display_SPW)
 
 
         ###### TEXT ######
@@ -1123,10 +1308,6 @@ class main:
 
         n+=1
 
-        self.graph_prints_display_graph_prints_display_clear.grid(row=n,column=0)
-
-        n+=1
-
         self.graph_prints_display_SPW_entry_one.grid(row=n,column=0)
 
         n+=1
@@ -1136,7 +1317,12 @@ class main:
         n+=1
 
         self.graph_prints_display_SPW_button.grid(row=n,column=0)
-        #######################################################
+
+        n+=1
+
+        self.graph_prints_display_graph_prints_display_clear.grid(row=n,column=0)
+
+#########################################################
 
     def graph_prints_display_clear(self):
         self.text_window.delete('1.0', END)
@@ -1169,9 +1355,9 @@ class main:
             if test==0:
                 text="Graph isn't eulerian"
             if test==1:
-                text="Graph have eulerian cycle"
+                text="Graph has eulerian cycle"
             if test==2:
-                text="Graph have eulerian path"
+                text="Graph has eulerian path"
             self.graph_prints_display_text(text)
         else:
             messagebox.showerror("Error", "Graph has no nodes")
@@ -1208,12 +1394,15 @@ class main:
             self.graph_prints_display_text(self.critical_edge())
         else:
             messagebox.showerror("Error", "Graph has no nodes")
+
     def graph_prints_display_SPW(self):
         if len(graf.nodes)>1:
             if self.graph_prints_display_SPW_entry_one.get() in graf.nodes and self.graph_prints_display_SPW_entry_two.get() in graf.nodes:
-                self.graph_prints_display_text(self.SPW(self.graph_prints_display_SPW_entry_one.get(),self.graph_prints_display_SPW_entry_two.get() in graf.nodes))
-            elif self.graph_prints_display_SPW_entry_one.get() in graf.nodes or self.graph_prints_display_SPW_entry_two.get() in graf.nodes:
+                self.graph_prints_display_text(self.SPW(self.graph_prints_display_SPW_entry_one.get(),self.graph_prints_display_SPW_entry_two.get()))
+            elif self.graph_prints_display_SPW_entry_one.get() in graf.nodes and not self.graph_prints_display_SPW_entry_two.get():
                 self.graph_prints_display_text(self.SPW_all(self.graph_prints_display_SPW_entry_one.get()))
+            elif self.graph_prints_display_SPW_entry_two.get() in graf.nodes and not self.graph_prints_display_SPW_entry_one.get():
+                self.graph_prints_display_text(self.SPW_all(self.graph_prints_display_SPW_entry_two.get()))
             else:
                 messagebox.showerror("Error", "There are no such a nodes")
         else:
@@ -1286,17 +1475,20 @@ class main:
             u=var1
         else:
             u=list(graf.nodes)[0]
+            for node in graf.nodes:
+                if len(graf.nodes[u])>len(graf.nodes[node]):
+                    u=node
         if self.eulerian_test()==1 or self.eulerian_test()==2:
             if self.eulerian_test()==1 and len(graf.edge_quantity)>0:
-                if var=="yes":
-                    print("Cycle")
+                if var=="draw":
+                    self.text=("Cycle\r\n")
                 else:
-                    self.text="Cycle "
+                    self.text="Cycle\r\n"
             if self.eulerian_test()==2 and len(graf.edge_quantity)>0:
-                if var=="yes":
-                    print("Path")
+                if var=="draw":
+                    self.text=("Path\r\n")
                 else:
-                    self.text="Path "
+                    self.text="Path\r\n"
             for i in graf.adj_list:
                 if len(graf.adj_list[i]) %2 != 0:
                     u=i
@@ -1305,8 +1497,8 @@ class main:
             if var!="yes":
                 return self.text
         else:
-            if var=="yes":
-                print("Graph isn't eulerian")
+            if var=="draw":
+                self.text="Graph isn't eulerian"
                 return 0
             else:
                 self.text="Graph isn't eulerian"
@@ -1315,8 +1507,9 @@ class main:
     def printEuler(self,u,var):
         for v in graf.adj_list[u]:
             if self.validNextEdge(u,v):
-                if var=="yes":
-                    print(u,"-",v)
+                if var=="draw":
+                    self.text+=u+" "+v
+                    self.text+="\r\n"
                 else:
                     self.text+=u+"->"+v+" "
                 self.rmvEdge(u,v)
@@ -1377,7 +1570,7 @@ class main:
         self.longestPath=[]
         graph_len=len(graf.nodes)
         if graph_len < 2:
-            print("Graph has one or fewer nodes")
+            self.text=("Graph has one or fewer nodes")
             self.consistency=False
         graf.convert_to_adj_list()
         visited=self.createVisited()
@@ -1403,7 +1596,6 @@ class main:
                     self.u=node
             self.findPath(self.u)
             return self.text
-
 
     def isConsistent(self,visited,index):
         visited[index]=True
@@ -1436,9 +1628,9 @@ class main:
                 if self.u in graf.adj_list[index]:
                     if len(graf.nodes[self.u])>1:
                         self.path.append(self.u)
-                        self.text="Found cycle"
+                        self.text="Found hamiltons cycle\r\n"
                     else:
-                        self.text="Found path"
+                        self.text="Found hamiltons path\r\n"
             #        print(self.path)
                     self.text=self.convert_to_text(self.path)
                     return self.text
@@ -1451,13 +1643,12 @@ class main:
                 h=self.path.pop()
                 if len(self.path)==0:
             #        print("Longest path",self.longestPath)
-                    self.text="Path"
+                    self.text="Path\r\n"
                     self.text=self.convert_to_text(self.longestPath)
                     return self.text
                 else:
                     i=self.path.pop()
                     self.findPath(i)
-
 
     def convert_to_text(self,converted_object):
         first=True
@@ -1467,7 +1658,7 @@ class main:
                 self.text+=key
                 first=False
             else:
-                self.text+="-> "+key
+                self.text+=" -> "+key
         return self.text
 
 ###############################################
@@ -1534,7 +1725,6 @@ class main:
             self.text+="There is no critical edges"
             return self.text
         else:
-            print(self.text)
             return self.text
 
     def isitcritical(self,node1,node2):
@@ -1574,15 +1764,14 @@ class main:
             while self.visited[end_node]==False:
                 self.looking_for_shorest_path()
 
-            print("Shortest paths from node ", start_node)
+            self.text=str(start_node)
             for node in self.node_wage:
                 if node==end_node:
-                    print("to node ",node," : ")
-                    print("Path length=",self.node_wage[node])
-                    print("Shortest path for this node is ", self.node_path[node])
-
+                    self.text+=str(self.node_path[node])+"\r\n"
+                    self.text+="Path wage "+str(self.node_wage[node])
+            return self.text
         else:
-            print("Nodes aren't connected")
+            return "Nodes aren't connected"
 
 
     def areConnected(self,visited,start_node,end_node):
@@ -1619,21 +1808,17 @@ class main:
 
 
 ###############################################
-
-
-
-###############################################
 #########Shortest path for all #################
 
     def SPW_all(self,start_node):
         self.node_wage={}
         self.node_path={}
         self.availablenodes=[]
+        self.text=""
         isConsistent=True
         visited=self.createVisited()
         self.isConsistent(visited,start_node)
         i=0
-
         for node in visited:
             if visited[node]==True:
                 i+=1
@@ -1645,14 +1830,91 @@ class main:
             while i>0:
                 self.looking_for_shorest_path()
                 i-=1
-            print("Shortest paths from node ", start_node)
+
+            self.text="Shortest paths from node "+str(start_node)+"\r\n"
             for node in self.node_wage:
                 if node!=start_node:
-                    print("to node ",node," : ")
-                    print("Path length=",self.node_wage[node])
-                    print("Shortest path for this node is ", self.node_path[node])
+                    self.text+="to node "+node+"\r\n"
+                    self.text+=str(start_node)+self.node_path[node]+"\r\n"
+                    self.text+="Path length= "+str(self.node_wage[node])+"\r\n"
+            return self.text
         else:
-            print("Nodes aren't connected")
+            self.text="Nodes aren't connected"
+            return self.text
+
+
+###############################################
+#########Shortest path from to#################
+
+    def coloring(self,type="adjmat"):
+        if len(graf.nodes)>0:
+            visited=self.createVisited()
+            u=list(graf.nodes)[0]
+            self.colors=["blue","green","yellow","black","red","brown","orange"]
+            self.groups={}
+            self.colored={}
+            if type=="node_deg":
+                for index in graf.adj_list:
+                    if len(graf.adj_list[u])<len(graf.adj_list[index]):
+                        u=index
+            for color in self.colors:
+                self.groups[color]=[]
+            self.groups["blue"].append(u)
+            print(self.groups)
+            if type=="adj_mat":
+                self.color_adj_mat(visited,u)
+            if type=="node_deg":
+                self.color_node_deg(visited,u)
+            print(self.groups)
+            for color in self.groups:
+                for nodes in self.groups[color]:
+                    self.c.create_oval(graf.return_X(nodes)-8,graf.return_Y(nodes)-8,graf.return_X(nodes)+8,graf.return_Y(nodes)+8,width=1,fill=str(color))
+        else:
+            messagebox.showerror("Error", "Graf has no nodes")
+
+
+    def color_adj_mat(self,visited,u):
+        visited[u]=True
+        for index in graf.nodes:
+            if visited[index]==False:
+                for color in self.groups:
+                    nextcolor=False
+                    for nodes in graf.adj_list[index]:
+                        if nodes in self.groups[color]:
+                            nextcolor=True
+                    if nextcolor==False:
+                        self.groups[color].append(index)
+                        self.color_adj_mat(visited,index)
+                        break;
+
+
+    def color_node_deg(self,visited,u):
+        visited[u]=True
+        chosen_node=False
+        for node in graf.nodes:
+            if visited[node]==False:
+                chosen_node=node
+
+        if chosen_node!=False:
+            for index in graf.adj_list:
+                if len(graf.adj_list[chosen_node])<len(graf.adj_list[index]) and visited[index]==False:
+                    chosen_node=index
+            print("chosen_node",chosen_node)
+            print("node deg",len(graf.adj_list[chosen_node]))
+            for color in self.groups:
+                nextcolor=False
+                for nodes in graf.adj_list[chosen_node]:
+                    if nodes in self.groups[color]:
+                        nextcolor=True
+                if nextcolor==False:
+                    self.groups[color].append(chosen_node)
+                    self.color_node_deg(visited,chosen_node)
+                    break;
+
+
+###############################################
+
+
 
 
 ###############################################
@@ -1698,7 +1960,7 @@ class main:
         self.dev_dfs_entry= Entry(self.dev_window_frame,width=4)
         self.dev_dfs_button= Button(self.dev_window_frame,width=15,text="Submit", command=self.DFS)
         self.dev_critical_edges= Button(self.dev_window_frame,width=15,text="Critical Edges", command=self.critical_edge)
-        self.dev_draw_graph= Button(self.dev_window_frame,width=15,text="Draw graph", command=self.draw_graph)
+        self.dev_draw_graph= Button(self.dev_window_frame,width=15,text="COLORING", command=self.coloring)
         self.dev_checkout= Checkbutton(self.dev_window_frame,width=15,text="Dev_checkout", variable=self.showcords)
         self.dev_SPW_node= Entry(self.dev_window_frame,width=4)
         self.dev_shortest_path_wage= Button(self.dev_window_frame,width=15,text="Shortest Wage Path", command=lambda: self.SPW_all(self.dev_SPW_node.get()))
@@ -1777,7 +2039,9 @@ class main:
 
     def save(self):
         graf.convert_to_adj_list()
-        f=open("savedgraf.txt","w+")
+    #    f=asksaveasfile(mode='w',defaultextension=".txt")
+        filename="Savedgraf.txt"
+        f=open(filename,"w+")
         for index in graf.nodes:
             f.write(index)
             f.write(" ")
@@ -1801,7 +2065,9 @@ class main:
 
     def load(self):
         self.clear_canvas()
-        f=open("savedgraf.txt","r")
+    #   filename=askopenfilename()
+        filename="Savedgraf.txt"
+        f=open(filename,"r")
         method="node"
         f1= f.readlines()
         for x in f1:

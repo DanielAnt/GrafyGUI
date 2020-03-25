@@ -31,6 +31,7 @@ class Graf:
     def change_wage(self,node1,node2,wage):
         if node1+node2 in self.edge_wage:
             self.edge_wage[str(node1)+str(node2)]=int(wage)
+            self.edge_wage[str(node2)+str(node1)]=int(wage)
 
     def remove_node(self,node_1): #removes node
         self.temp_node=str(node_1)
