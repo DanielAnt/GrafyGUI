@@ -15,7 +15,7 @@ class Graf:
         self.edgeCordsY= {}
         self.times_has_been_drawn={}
         self.pointer={}   ##### for numerating nodes (important for conversion from list to matrix) #####
-
+        self.reversedpointer={}
 
 ################ Adding and removing stuff from graph ####################
     def add_node(self, node_1,cordX,cordY):
@@ -129,9 +129,7 @@ class Graf:
 ########### For creaing graph from adj matrix ##############
 
     def create_adj_matrix(self,index_1,keys):
-        index=str(index_1)
-        self.adjacency_matrix[index]=[]
-        self.adjacency_matrix[index].append(keys) #takes adj_matrix from GUI class and pass it to self.adjacency_matrix
+        self.adjacency_matrix[index_1]=keys #takes adj_matrix from GUI class and pass it to self.adjacency_matrix
 
     def convert_adj_matrix(self,nodequantity,draw_ratio_var=1):
         radius=150*(draw_ratio_var-1) if nodequantity > 5 else 100*(draw_ratio_var-1) # adjust radius of circle that the graph is drawn on depending on nodequantity
@@ -144,6 +142,15 @@ class Graf:
                 if index[0]>=index[1]:
                     for i in range(int(keys)):
                         self.add_edge_undirected(index[0],index[1]) #converts_matrix into graph
+
+    def convert_adj_matrix_edit(self):
+        for index1 in self.reversedpointer:
+            for index2 in self.reversedpointer:
+                if int(index1)>=int(index2):
+                    if int(self.adjacency_matrix[str(index1)+"-"+str(index2)])>0:
+                        for i in range(int(self.adjacency_matrix[str(index1)+"-"+str(index2)])):
+                            self.add_edge_undirected(self.reversedpointer[index1],self.reversedpointer[index2])
+
 
 ######### Functions for creating graph from incidence matrix #########
     def create_inc_matrix(self, index_1,keys):
@@ -168,6 +175,21 @@ class Graf:
                     node1=str(l)
                 if node1 and node2:
                     self.add_edge_undirected(node1,node2)
+                    node1=None
+                    node2=None
+
+    def convert_inc_matrix_edit(self,nodequantity, edgequantity):
+        for i in range(edgequantity):
+            node1=None
+            node2=None
+            for l in range(nodequantity):
+                index=str(l)+str(i)
+                if self.incidence_matrix[index]==['1'] and node1!=None:
+                    node2=str(l)
+                if self.incidence_matrix[index]==['1'] and node1==None:
+                    node1=str(l)
+                if node1 and node2:
+                    self.add_edge_undirected(self.reversedpointer[str(node1)],self.reversedpointer[str(node2)])
                     node1=None
                     node2=None
 
@@ -205,26 +227,34 @@ class Graf:
 
     def convert_to_adj_matrix(self):
         self.convert_to_adj_list()
+        self.adjacency_matrix={}
         i=0
         for nodes in self.nodes:
             self.pointer[nodes]=str(i)
             i+=1
-        self.ignorednodes=[]
+        i=0
+        for nodes in self.nodes:
+            self.reversedpointer[str(i)]=nodes
+            i+=1
         for node in self.nodes:
             for key in self.nodes:
-                if key not in self.ignorednodes:
-                    if node+key in self.edge_quantity:
-                        self.adjacency_matrix[self.pointer[node]+self.pointer[key]]=self.edge_quantity[node+key]
-                        self.adjacency_matrix[self.pointer[key]+self.pointer[node]]=self.edge_quantity[node+key]
-                    else:
-                        self.adjacency_matrix[self.pointer[node]+self.pointer[key]]=0
-                        self.adjacency_matrix[self.pointer[key]+self.pointer[node]]=0
-            self.ignorednodes.append(node)
+                if node+key in self.edge_quantity:
+                    self.adjacency_matrix[self.pointer[node]+"-"+self.pointer[key]]=self.edge_quantity[node+key]
+                    self.adjacency_matrix[self.pointer[key]+"-"+self.pointer[node]]=self.edge_quantity[node+key]
+                else:
+                    self.adjacency_matrix[self.pointer[node]+"-"+self.pointer[key]]=0
+                    self.adjacency_matrix[self.pointer[key]+"-"+self.pointer[node]]=0
 
     def convert_to_inc_matrix(self):
+        self.incidence_matrix={}
         i=0
         for nodes in self.nodes:
             self.pointer[nodes]=str(i)
+            i+=1
+        self.reversedpointer={}
+        i=0
+        for nodes in self.nodes:
+            self.reversedpointer[str(i)]=nodes
             i+=1
         i=0
         self.ignorednodes=[]
@@ -236,8 +266,8 @@ class Graf:
                         self.ignorednodes.append(key+node)
                         for quantity in range(int(self.edge_quantity[node+key])):
                             for nodenumber in range(len(self.pointer)):
-                                if str(nodenumber)==str(self.pointer[node]) or str(nodenumber)==str(self.pointer[key]):
-                                    self.incidence_matrix[str(nodenumber)+str(i)]=1
+                                if str(nodenumber)==str((self.pointer[node])) or str(nodenumber)==str((self.pointer[key])):
+                                    self.incidence_matrix[str(nodenumber)+"-"+str(i)]=1
                                 else:
-                                    self.incidence_matrix[str(nodenumber)+str(i)]=0
+                                    self.incidence_matrix[str(nodenumber)+"-"+str(i)]=0
                             i+=1
