@@ -6,6 +6,8 @@ from PIL import Image, ImageTk
 from math import *
 import sys
 import time
+import random
+
 sys.setrecursionlimit(2000)
 
 
@@ -16,6 +18,7 @@ class main:
         self.master = master
         self.color_fg = 'black'
         self.color_bg = 'white'
+        self.line_width=2
         self.draw_ratio=int(2)
         self.switch_variable = StringVar(value="")
         self.selected=False
@@ -43,10 +46,10 @@ class main:
         self.directedEdge_button = Radiobutton(self.buttons, text="directedEdge",variable=self.switch_variable,indicatoron=False, value="drawDirected", height=1)
         self.buttonPrint= Button(self.buttons,text = "Print", command= self.print_graph, height=1)
         self.draw_graph_button= Button(self.buttons,width=10,text="Draw graph", command=self.draw_graph)
-        self.var1=IntVar()
-        self.directed_CheckButton= Checkbutton(self.controls, text="Directed", variable=self.var1)
+    #    self.var1=IntVar()
+    #    self.directed_CheckButton= Checkbutton(self.controls, text="Directed",selectcolor="black", variable=self.var1)
         self.wage_var=IntVar()
-        self.wage_graph = Checkbutton(self.controls, text="Draw Wages", variable=self.wage_var)
+        self.wage_graph = Checkbutton(self.controls, text="Draw Wages",selectcolor="black", variable=self.wage_var)
 
 ############ Buttons.pack #################
         self.draw_Entry.pack(side="left",fill=Y, expand=True)
@@ -58,7 +61,7 @@ class main:
         self.select_button.pack(side="left",fill=Y, expand=True)
         self.buttonPrint.pack(side="left")
         self.draw_graph_button.pack(side="left")
-        self.directed_CheckButton.pack(side="left")
+    #    self.directed_CheckButton.pack(side="left")
         self.wage_graph.pack(side="left")
         self.controls.pack(side=TOP,fill=X, expand=False)
 
@@ -69,7 +72,7 @@ class main:
         self.print_space=Text(self.master,width=10,bg="white",relief=SUNKEN)
         self.print_space.pack(side=LEFT,fill=Y,expand=False)
 
-        self.c=Canvas(self.master,width=500,height=400,bg=self.color_bg,)
+        self.c=Canvas(self.master,width=1300,height=900,bg=self.color_bg,)
         self.c.pack(fill=BOTH,expand=True)
 #        self.c.bind("<Motion>",self.moved)
 #        self.tag=self.c.create_text(10,10, text="", anchor="nw")
@@ -84,6 +87,10 @@ class main:
         self.graphmenu.add_command(label='Incidence matrix',command=self.graph_add_inc)
         self.graphmenu.add_command(label='Adjacency list',command=self.graph_add_adjlist)
         self.graphmenu.add_command(label='Type in',command=self.type_in)
+        self.editmenu= Menu(self.menu)
+        self.menu.add_cascade(label='Edit graph', menu=self.editmenu)
+        self.editmenu.add_command(label='Edit adjacency matrix',command=self.adj_matrix_edit)
+        self.editmenu.add_command(label='Edit incidence matrix',command=self.inc_matrix_edit)
         self.testmenu= Menu(self.menu)
         self.menu.add_cascade(label='Functions', menu=self.testmenu)
         self.testmenu.add_command(label='Display paths',command=self.graph_tests)
@@ -92,9 +99,10 @@ class main:
         self.menu.add_cascade(label='Coloring Graph', menu=self.coloring_graph)
         self.coloring_graph.add_command(label='By adjacency matrix',command=lambda: self.coloring("adj_mat"))
         self.coloring_graph.add_command(label='By node deg',command=lambda: self.coloring("node_deg"))
+        self.coloring_graph.add_command(label='By random',command=lambda: self.coloring("node_random"))
         self.optionmenu = Menu(self.menu)
         self.menu.add_cascade(label='Options',menu=self.optionmenu)
-        self.optionmenu.add_command(label='Clear',command=self.clear_canvas)
+        self.optionmenu.add_command(label='Clear',command=lambda: self.clear_canvas(self.c))
         self.optionmenu.add_command(label='Exit',command=self.master.destroy)
         self.devmenu = Menu(self.menu)
         self.menu.add_cascade(label='DEVTOOLS',menu=self.devmenu)
@@ -115,9 +123,9 @@ class main:
             self.remove=True
             graf.remove_node(self.node)
         if self.remove==True:
-            self.clear_canvas_without_removing_graph()
-            self.draw_edges()
-            self.draw_nodes()
+            self.clear_canvas_without_removing_graph(self.c)
+            self.draw_edges(self.c)
+            self.draw_nodes(self.c)
             self.remove=False
             self.node=None
             self.selected=False
@@ -132,14 +140,12 @@ class main:
 ###############################################
 ##############CLEARING CANVAS##################
 
-    def clear_canvas(self):
-        self.c.delete(ALL)
+    def clear_canvas(self,canvas):
+        canvas.delete(ALL)
         graf.clear_graph()
-    #    self.print.delete(ALL)  # clears canvas and graph
 
-    def clear_canvas_without_removing_graph(self):
-        self.c.delete(ALL)
-    #    self.print.delete(ALL)  #clear canvas without clearing graph
+    def clear_canvas_without_removing_graph(self,canvas):
+        canvas.delete(ALL)
 
 ###############################################
 #########Printing Methods######################
@@ -158,13 +164,13 @@ class main:
                     text+="\r\n[ "
                 next=True
                 for column in range(int(length)):
-                    if str(row)+str(column) in graf.adjacency_matrix:
+                    if str(row)+"-"+str(column) in graf.adjacency_matrix:
                         if next==True:
-                            text+=str(graf.adjacency_matrix[str(row)+str(column)])
+                            text+=str(graf.adjacency_matrix[str(row)+"-"+str(column)])
                             next=False
                         else:
                             text+=" , "
-                            text+=str(graf.adjacency_matrix[str(row)+str(column)])
+                            text+=str(graf.adjacency_matrix[str(row)+"-"+str(column)])
                 text+=" ]"
             return text
 
@@ -184,13 +190,13 @@ class main:
                     text+="\r\n[ "
                 next=True
                 for column in range(int(number_of_columns)):
-                    if str(row)+str(column) in graf.incidence_matrix:
+                    if str(row)+"-"+str(column) in graf.incidence_matrix:
                         if next==True:
-                            text+=str(graf.incidence_matrix[str(row)+str(column)])
+                            text+=str(graf.incidence_matrix[str(row)+"-"+str(column)])
                             next=False
                         else:
                             text+=" , "
-                            text+=str(graf.incidence_matrix[str(row)+str(column)])
+                            text+=str(graf.incidence_matrix[str(row)+"-"+str(column)])
                 text+=" ]"
             return text
 
@@ -214,35 +220,22 @@ class main:
 ###############################################
 #########Display Methods######################
 
-    def draw_nodes(self):
+    def draw_nodes(self,canvas):
         for source in graf.nodes:
-            self.c.create_image(graf.return_X(source),graf.return_Y(source), image=photo)
-            self.c.create_text(graf.return_X(source)+10,graf.return_Y(source)-15,fill="darkblue",font="Times 10 bold", text=source)    #draw graph nodes
+            canvas.create_image(graf.return_X(source),graf.return_Y(source), image=photo)
+            canvas.create_text(graf.return_X(source)+15,graf.return_Y(source)-20,fill="darkblue",font="Times 14 bold", text=source)    #draw graph nodes
 
-    def draw_edges(self):
+    def draw_edges(self,canvas):
         graf.convert_to_adj_list()
         graf.times_has_been_drawn={}
         for index in graf.edge_quantity:
             graf.times_has_been_drawn[index]=0
         for node1 in graf.adj_list:
             for node2 in graf.adj_list[node1]:
-                    #self.c.create_line(graf.cordsX[node1],graf.cordsY[node1],graf.cordsX[node2],graf.cordsY[node2],width=1,fill="red",smooth=True)    #draw graph edges
+                    #canvas.create_line(graf.cordsX[node1],graf.cordsY[node1],graf.cordsX[node2],graf.cordsY[node2],width=self.line_width,fill="red",smooth=True)    #draw graph edges
                     self.create_line_arc(node1,node2,canvas)
 
     def print_graph(self):
-        #self.print.delete(ALL)
-        #self.text=graf.name
-        #self.text+="\n"
-        #for source in graf.nodes:
-#            self.text+=str(source)
-#            self.text+=":\n"
-#            for keys in graf.nodes[source]:
-#                self.text+=str(keys)
-#                if self.wage_var.get()==1:
-#                    self.text+="-"
-#                    self.text+=str(graf.edge_wage[keys])
-#                self.text+="\n"
-        #self.print.create_text(50,200,fill="darkblue",font="Times 10 bold", text=self.text)   #prints graph on canvas
         self.text=graf.name
         self.text+="\n"
         for source in graf.nodes:
@@ -263,10 +256,9 @@ class main:
         if node1==node2:
             self.temp=graf.times_has_been_drawn[node1+node2]
             if self.temp%2==0:
-                self.c.create_oval(graf.return_X(node1)-15-5*self.temp,graf.return_Y(node1)+15+5*self.temp,graf.return_X(node1)+1*self.temp,graf.return_Y(node1)-1*self.temp,width=2)
+                canvas.create_oval(graf.return_X(node1)-15-5*self.temp,graf.return_Y(node1)+15+5*self.temp,graf.return_X(node1)+1*self.temp,graf.return_Y(node1)-1*self.temp,width=2)
             else:
-                self.c.create_oval(graf.return_X(node1)-15-5*(self.temp-1),graf.return_Y(node1)-15-5*(self.temp-1),graf.return_X(node1)+1*self.temp,graf.return_Y(node1)+1*self.temp,width=2)
-                #self.c.create_line(graf.return_X(node1)+5,graf.return_Y(node1)+5,graf.return_X(node1),graf.return_Y(node1)-35,graf.return_X(node1)-35,graf.return_Y(node1)-35,graf.return_X(node1)-35,graf.return_Y(node1),graf.return_X(node2)+5,graf.return_Y(node2)+5,width=1,fill="black",smooth=True)    #draw graph edges
+                canvas.create_oval(graf.return_X(node1)-15-5*(self.temp-1),graf.return_Y(node1)-15-5*(self.temp-1),graf.return_X(node1)+1*self.temp,graf.return_Y(node1)+1*self.temp,width=2)
             self.temp+=1
             graf.times_has_been_drawn[node1+node2]=self.temp
         else:
@@ -293,9 +285,9 @@ class main:
                     X_wynik2=float((-VarB-sqrt(DELTA))/(2*VarA))
                     Y_wynik1=a1*X_wynik1+b1
                     Y_wynik2=a1*X_wynik2+b1
-                self.c.create_line(graf.return_X(node1),graf.return_Y(node1),graf.return_X(node2),graf.return_Y(node2),width=1,fill="black",smooth=True)    #draw graph edges
+                canvas.create_line(graf.return_X(node1),graf.return_Y(node1),graf.return_X(node2),graf.return_Y(node2),width=self.line_width,fill="black",smooth=True)    #draw graph edges
                 if self.wage_var.get()==1:
-                    self.c.create_text(X_wynik2,Y_wynik2,fill="darkblue",font="Times 10 bold", text=graf.edge_wage[node1+node2])
+                    canvas.create_text(X_wynik2,Y_wynik2,fill="darkblue",font="Times 14 bold", text=graf.edge_wage[node1+node2])
                 self.temp=graf.times_has_been_drawn[node1+node2]
                 self.temp+=1
                 graf.times_has_been_drawn[node1+node2]=self.temp
@@ -356,13 +348,13 @@ class main:
                         Y_wage1=a1*X_wynik1+b1
                         Y_wage2=a1*X_wynik2+b1
                     if ratio % 2 == 0:
-                        self.c.create_line(graf.return_X(node1),graf.return_Y(node1),X_wynik1,Y_wynik1,graf.return_X(node2),graf.return_Y(node2),width=1,fill="black",smooth=True)    #draw graph edges
+                        canvas.create_line(graf.return_X(node1),graf.return_Y(node1),X_wynik1,Y_wynik1,graf.return_X(node2),graf.return_Y(node2),width=self.line_width,fill="black",smooth=True)    #draw graph edges
                         if self.wage_var.get()==1:
-                            self.c.create_text(X_wage1,Y_wage1,fill="darkblue",font="Times 10 italic bold", text=graf.edge_wage[node1+node2])
+                            canvas.create_text(X_wage1,Y_wage1,fill="darkblue",font="Times 14 bold", text=graf.edge_wage[node1+node2])
                     else:
-                        self.c.create_line(graf.return_X(node1),graf.return_Y(node1),X_wynik2,Y_wynik2,graf.return_X(node2),graf.return_Y(node2),width=1,fill="black",smooth=True)    #draw graph edges
+                        canvas.create_line(graf.return_X(node1),graf.return_Y(node1),X_wynik2,Y_wynik2,graf.return_X(node2),graf.return_Y(node2),width=self.line_width,fill="black",smooth=True)    #draw graph edges
                         if self.wage_var.get()==1:
-                            self.c.create_text(X_wage2,Y_wage2,fill="darkblue",font="Times 10 italic bold", text=graf.edge_wage[node1+node2])
+                            canvas.create_text(X_wage2,Y_wage2,fill="darkblue",font="Times 14 bold", text=graf.edge_wage[node1+node2])
 
 
                     self.temp=graf.times_has_been_drawn[node1+node2]
@@ -371,9 +363,9 @@ class main:
                     graf.times_has_been_drawn[node2+node1]=self.temp
 
     def draw_graph(self):
-        self.clear_canvas_without_removing_graph()
-        self.draw_edges()
-        self.draw_nodes()
+        self.clear_canvas_without_removing_graph(self.c)
+        self.draw_edges(self.c)
+        self.draw_nodes(self.c)
 
 ###############################################
 
@@ -404,7 +396,7 @@ class main:
                         if self.exist==False:
                             graf.add_node(self.draw_Entry.get(),self.new_x, self.new_y)
                             self.c.create_image(self.new_x,self.new_y, image=photo)
-                            self.c.create_text(self.new_x+10,self.new_y-15,fill="darkblue",font="Times 10 italic bold", text=self.draw_Entry.get())
+                            self.c.create_text(self.new_x+0,self.new_y-25,fill="darkblue",font="Times 14 bold", text=self.draw_Entry.get())
                     else:
                         messagebox.showerror("Error", "You can't add more then one node with the same name")
 
@@ -501,11 +493,11 @@ class main:
             self.matrix_frame=Frame(self.frame_two)
             self.matrix_frame.pack(side=TOP)
             for row in range(self.temp_NodeQuantity):
-                for collumns in range(self.temp_NodeQuantity):
-                    index=str(row)+str(collumns)
+                for column in range(self.temp_NodeQuantity):
+                    index=str(row)+str(column)
                     matrix_entry= Entry(self.matrix_frame,width=3)
                     matrix_entry.insert(END,"0")
-                    matrix_entry.grid(row=row,column=collumns,stick="nsew")
+                    matrix_entry.grid(row=row,column=column,stick="nsew")
                     self.entry_matrix[index]=matrix_entry
             self.adjacency_matrix_submit= Button(self.frame_two, width=15,text="Submit",command=self.matrix_adj_submit)
             self.adjacency_matrix_submit.pack(side=TOP)
@@ -513,7 +505,7 @@ class main:
             messagebox.showerror("Error", "You need to enter a number") #submits the number from graph_add_adj entry
 
     def matrix_adj_submit(self):
-        self.clear_canvas()
+        self.clear_canvas(self.c)
         self.matrix_error=False
         length=sqrt(len(self.entry_matrix))
         for row in range(int(length)):
@@ -535,6 +527,85 @@ class main:
         else:
             messagebox.showerror("Error", "Wrong data in matrix")
             graf.adjacency_matrix={} #clears adj_matrix
+
+    def adj_matrix_edit(self):
+        if len(graf.nodes)>0:
+            graf.convert_to_adj_matrix()
+            self.temp_NodeQuantity=int(sqrt(len(graf.adjacency_matrix)))
+            print("len",len(graf.adjacency_matrix))
+            print("nodequantity",self.temp_NodeQuantity)
+            self.matrix_window= Toplevel()
+            self.matrix_window.grab_set()
+            self.matrix_window.resizable(False,False)
+            self.matrix_window.attributes("-topmost",True)
+            self.matrix_window.title("Adjacency matrix")
+            self.frame_two=Frame(self.matrix_window,relief='sunken')
+            self.frame_two.pack(side="left",fill=BOTH, expand=False)
+            self.matrix_label=Label(self.frame_two,font="Times 10 italic bold", text="Enter matrix values")
+            self.matrix_label.pack(side=TOP)
+            self.entry_matrix={}
+            self.matrix_frame=Frame(self.frame_two)
+            self.matrix_frame.pack(side=TOP)
+            matrix_label=Label(self.matrix_frame,text="~")
+            matrix_label.grid(row=0,column=0,stick="nsew")
+            for row in range(self.temp_NodeQuantity):
+                for column in range(self.temp_NodeQuantity):
+                    index=str(row)+"-"+str(column)
+                    matrix_entry= Entry(self.matrix_frame,width=3)
+                    if row==0 and column==0:
+                        matrix_label_X=Label(self.matrix_frame,text=graf.reversedpointer[str(column)])
+                        matrix_label_Y=Label(self.matrix_frame,text=graf.reversedpointer[str(row)])
+                        matrix_label_X.grid(row=row,column=column+1,stick="nsew")
+                        matrix_label_Y.grid(row=row+1,column=column,stick="nsew")
+                        matrix_entry.insert(END,graf.adjacency_matrix[str(row)+"-"+str(column)])
+                        matrix_entry.grid(row=row+1,column=column+1,stick="nsew")
+                    elif row==0 and column!=0:
+                        matrix_label_X=Label(self.matrix_frame,text=graf.reversedpointer[str(column)])
+                        matrix_label_X.grid(row=row,column=column+1,stick="nsew")
+                        matrix_entry.insert(END,graf.adjacency_matrix[str(row)+"-"+str(column)])
+                        matrix_entry.grid(row=row+1,column=column+1,stick="nsew")
+                    elif column==0 and row!=0:
+                        matrix_label_Y=Label(self.matrix_frame,text=graf.reversedpointer[str(row)])
+                        matrix_label_Y.grid(row=row+1,column=column,stick="nsew")
+                        matrix_entry.insert(END,graf.adjacency_matrix[str(row)+"-"+str(column)])
+                        matrix_entry.grid(row=row+1,column=column+1,stick="nsew")
+                    else:
+                        matrix_entry.insert(END,graf.adjacency_matrix[str(row)+"-"+str(column)])
+                        matrix_entry.grid(row=row+1,column=column+1,stick="nsew")
+                    self.entry_matrix[index]=matrix_entry
+            self.adjacency_matrix_submit= Button(self.frame_two, width=15,text="Submit",command=self.adj_matrix_edit_submit)
+            self.adjacency_matrix_submit.pack(side=TOP)
+        else:
+            messagebox.showerror("Error", "Graph is empty")
+
+    def adj_matrix_edit_submit(self):
+        self.matrix_error=False
+        length=sqrt(len(self.entry_matrix))
+
+        for row in range(int(length)):
+            for column in range(int(length)):
+                if self.entry_matrix[str(row)+"-"+str(column)].get().isnumeric():
+                    if self.entry_matrix[str(row)+"-"+str(column)].get()==self.entry_matrix[str(column)+"-"+str(row)].get():
+                        graf.create_adj_matrix(str(row)+"-"+str(column),self.entry_matrix[str(row)+"-"+str(column)].get())
+                    else:
+                        self.matrix_error=True
+                        break;
+                else:
+                    self.matrix_error=True
+                    break;
+
+        if self.matrix_error==False:
+            for node in graf.nodes:
+                for node1 in graf.nodes:
+                    if node+node1 in graf.edge_quantity:
+                        for i in range(graf.edge_quantity[node+node1]):
+                            graf.remove_edge(node,node1)
+            graf.convert_adj_matrix_edit()
+            self.draw_graph()
+            self.matrix_window.destroy()
+        else:
+            messagebox.showerror("Error", "Graph is empty")
+
 
 ###############################################
 
@@ -578,17 +649,17 @@ class main:
             self.matrix_frame=Frame(self.frame_two)
             self.matrix_frame.pack(side=TOP)
             for row in range(self.temp_NodeQuantity):
-                for collumns in range(self.temp_EdgeQuantity):
-                    index=str(row)+str(collumns)
+                for column in range(self.temp_EdgeQuantity):
+                    index=str(row)+str(column)
                     matrix_entry= Entry(self.matrix_frame,width=3)
                     matrix_entry.insert(END,"0")
-                    matrix_entry.grid(row=row,column=collumns,stick="nsew")
+                    matrix_entry.grid(row=row,column=column,stick="nsew")
                     self.entry_matrix[index]=matrix_entry
             self.adjacency_matrix_submit= Button(self.frame_two, width=15,text="Submit",command=self.matrix_inc_submit)
             self.adjacency_matrix_submit.pack(side=TOP)
 
     def matrix_inc_submit(self):
-        self.clear_canvas()
+        self.clear_canvas(self.c)
         self.matrix_error=False
         for column in range(self.temp_EdgeQuantity):
             i=0
@@ -604,7 +675,6 @@ class main:
                     self.matrix_error=True
                     break;
             if i!=2 and i!=0:
-                print("to",i)
                 self.matrix_error=True
                 break
         if self.matrix_error==False:
@@ -613,6 +683,75 @@ class main:
             self.matrix_window.destroy() # submits entered matrix into graph and draws it
         else:
             graf.incidence_matrix={} #submits matrix
+            messagebox.showerror("Error", "Wrong data")
+
+    def inc_matrix_edit(self):
+        if len(graf.nodes)>0:
+            graf.convert_to_inc_matrix()
+            self.temp_NodeQuantity=int(len(graf.pointer))
+            matrix_length=len(graf.incidence_matrix)
+            self.temp_EdgeQuantity=int(matrix_length/self.temp_NodeQuantity)
+
+            self.matrix_window= Toplevel()
+            self.matrix_window.grab_set()
+            self.matrix_window.attributes("-topmost",True)
+            self.matrix_window.title("Incidence matrix")
+            self.matrix_window.resizable(False,False)
+
+            self.frame_two=Frame(self.matrix_window,relief='sunken')
+            self.frame_two.pack(side="left",fill=BOTH, expand=False)
+            self.matrix_label=Label(self.frame_two,font="Times 10 italic bold", text="Enter matrix values")
+            self.matrix_label.pack(side=TOP)
+            self.entry_matrix={}
+            self.matrix_frame=Frame(self.frame_two)
+            self.matrix_frame.pack(side=TOP)
+
+            for row in range(int(self.temp_NodeQuantity)):
+                for column in range(int(self.temp_EdgeQuantity)):
+                    index=str(row)+"-"+str(column)
+                    matrix_entry= Entry(self.matrix_frame,width=3)
+                    matrix_entry.insert(END,graf.incidence_matrix[str(row)+"-"+str(column)])
+                    if column==0:
+                        matrix_label=Label(self.matrix_frame,text=graf.reversedpointer[str(row)])
+                        matrix_label.grid(row=row,column=column,stick="nsew")
+                        matrix_entry.grid(row=row,column=column+1,stick="nsew")
+                    else:
+                        matrix_entry.grid(row=row,column=column+1,stick="nsew")
+                    self.entry_matrix[index]=matrix_entry
+            self.adjacency_matrix_submit= Button(self.frame_two, width=15,text="Submit",command=self.inc_matrix_edit_submit)
+            self.adjacency_matrix_submit.pack(side=TOP)
+
+    def inc_matrix_edit_submit(self):
+        self.matrix_error=False
+        for column in range(int(self.temp_EdgeQuantity)):
+            i=0
+            for row in range(int(self.temp_NodeQuantity)):
+                i+=int(self.entry_matrix[str(row)+"-"+str(column)].get())
+                if self.entry_matrix[str(row)+"-"+str(column)].get().isnumeric():
+                    if int(self.entry_matrix[str(row)+"-"+str(column)].get())==1 or int(self.entry_matrix[str(row)+"-"+str(column)].get())==0:
+                        graf.create_inc_matrix(str(row)+str(column),self.entry_matrix[str(row)+"-"+str(column)].get())
+                    else:
+                        self.matrix_error=True
+                        break;
+                else:
+                    self.matrix_error=True
+                    break;
+            if i!=2 and i!=0:
+                self.matrix_error=True
+                break
+
+        if self.matrix_error==False:
+            for node in graf.nodes:
+                for node1 in graf.nodes:
+                    if node+node1 in graf.edge_quantity:
+                        for i in range(graf.edge_quantity[node+node1]):
+                            graf.remove_edge(node,node1)
+            graf.convert_inc_matrix_edit(self.temp_NodeQuantity,self.temp_EdgeQuantity)
+            self.draw_graph()
+            self.matrix_window.destroy() # submits entered matrix into graph and draws it
+        else:
+            graf.incidence_matrix={} #submits matrix
+            messagebox.showerror("Error", "Wrong data")
 
 ###############################################
 
@@ -626,7 +765,7 @@ class main:
         self.graph_adj_list.geometry("285x280")
         self.graph_adj_list.resizable(False,False)
         self.graph_adj_list.attributes("-topmost",True)
-        self.graph_adj_list.title('Adajacency matrix')
+        self.graph_adj_list.title('Adajacency list')
 
         #frames
         self.frame_buttons= Frame(self.graph_adj_list,width=50,height=50,padx=1)
@@ -748,7 +887,7 @@ class main:
             self.display_edge_listbox_available_nodes()
 
     def graph_adj_list_submit(self):  # submits input data into graph and then draws it
-        self.clear_canvas()
+        self.clear_canvas(self.c)
         nodequantity=len(self.adj_list_nodes)
         radius=150*self.draw_ratio if nodequantity > 5 else 100*self.draw_ratio # adjust radius of circle that the graph is drawn on depending on nodequantity
         i=0
@@ -965,7 +1104,7 @@ class main:
 
         ######### Frames ##################
         self.graph_tests_buttons_frame=Frame(self.graph_tests_window)
-        self.graph_tests_canvas_frame=Frame(self.graph_tests_window,width=400, height=300)
+        self.graph_tests_canvas_frame=Frame(self.graph_tests_window)
         self.graph_tests_buttons_frame.pack(side="left",fill=BOTH, expand=False)
         self.graph_tests_canvas_frame.pack(side="left",fill=BOTH, expand=True)
 
@@ -1002,7 +1141,7 @@ class main:
     #    self.graph_tests_DFS_button.grid(row=n,column=0)
 
         ######## Canvas ##################
-        self.graph_tests_canvas=Canvas(self.graph_tests_canvas_frame,width=400,height=300, bg="white")
+        self.graph_tests_canvas=Canvas(self.graph_tests_canvas_frame,width=600,height=500, bg="white")
         self.graph_tests_canvas.pack(fill=BOTH,expand=True)
         self.graph_tests_text=Text(self.graph_tests_canvas_frame,height=1)
         self.graph_tests_text.pack(side=BOTTOM)
@@ -1020,7 +1159,7 @@ class main:
             self.graph_tests_text.delete("1.0",END)
             self.graph_tests_text.insert(INSERT, displayed_text)
             if test>0:
-                self.graph_tests_draw_nodes(self.graph_tests_canvas)
+                self.draw_nodes(self.graph_tests_canvas)
                 self.graph_tests_canvas.update()
                 time.sleep(2)
                 text=self.printforall("novariable","draw")
@@ -1054,7 +1193,7 @@ class main:
     def graph_tests_hamilton(self):
         if len(graf.nodes)>0:
             self.graph_tests_canvas.delete(ALL)
-            self.graph_tests_draw_nodes(self.graph_tests_canvas)
+            self.draw_nodes(self.graph_tests_canvas)
             self.graph_tests_canvas.update()
             time.sleep(2)
             text=self.hamilton_test()
@@ -1089,14 +1228,6 @@ class main:
     def graph_test_BFS(self):
         self.graph_tests_print_text(self.BFS())
 
-    def graph_tests_print(self,text):
-        self.graph_tests_canvas.create_line()
-
-    def graph_tests_draw_nodes(self,canvas,ratio=1):
-        for source in graf.nodes:
-            canvas.create_image(graf.return_X(source),graf.return_Y(source), image=photo)
-            canvas.create_text(graf.return_X(source)+10,graf.return_Y(source)-15,fill="darkblue",font="Times 10 bold", text=source)
-
     def graph_tests_prepare_for_drawing(self):
         graf.convert_to_adj_list()
         graf.times_has_been_drawn={}
@@ -1109,10 +1240,13 @@ class main:
         node2_x=graf.return_X(node2)
         node2_y=graf.return_Y(node2)
         if node1==node2:
-            canvas.create_line(node_x+5,node_y+5,node_x,node_y-35,node_x-35,node_y-35,node_x-35,node_y,node2_x+5,node2_y+5,width=2, arrow=LAST,fill="black",smooth=True)    #draw graph edges
+            self.temp=graf.times_has_been_drawn[node1+node2]
+            if self.temp%2==0:
+                canvas.create_oval(node_x-15-5*self.temp,node_y+15+5*self.temp,node_x+1*self.temp,node_y-1*self.temp,width=2)
+            else:
+                canvas.create_oval(node_x-15-5*(self.temp-1),node_y-15-5*(self.temp-1),node_x+1*self.temp,node_y+1*self.temp,width=2)
+            self.temp+=1
             graf.times_has_been_drawn[node1+node2]=self.temp
-            graf.times_has_been_drawn[node2+node1]=self.temp
-
         else:
             if graf.times_has_been_drawn[node1+node2]==0 and graf.times_has_been_drawn[node1+node2]<graf.edge_quantity[node1+node2]:
                 z=10
@@ -1137,9 +1271,9 @@ class main:
                     X_wynik2=float((-VarB-sqrt(DELTA))/(2*VarA))
                     Y_wynik1=a1*X_wynik1+b1
                     Y_wynik2=a1*X_wynik2+b1
-                canvas.create_line(node_x,node_y,node2_x,node2_y,width=2, arrow=LAST,fill="black",smooth=True)    #draw graph edges
+                canvas.create_line(node_x,node_y,node2_x,node2_y,width=self.line_width, arrow=LAST,fill="black",smooth=True)    #draw graph edges
                 if self.wage_var.get()==1:
-                    canvas.create_text(X_wynik2,Y_wynik2,fill="darkblue",font="Times 10 italic bold", text=graf.edge_wage[node1+node2])
+                    canvas.create_text(X_wynik2,Y_wynik2,fill="darkblue",font="Times 12 bold", text=graf.edge_wage[node1+node2])
                 self.temp=graf.times_has_been_drawn[node1+node2]
                 self.temp+=1
                 graf.times_has_been_drawn[node1+node2]=self.temp
@@ -1200,13 +1334,13 @@ class main:
                         Y_wage1=a1*X_wynik1+b1
                         Y_wage2=a1*X_wynik2+b1
                     if ratio % 2 == 0:
-                        canvas.create_line(node_x,node_y,X_wynik1,Y_wynik1,node2_x,node2_y,width=2, arrow=LAST,fill="black",smooth=True)    #draw graph edges
+                        canvas.create_line(node_x,node_y,X_wynik1,Y_wynik1,node2_x,node2_y,width=self.line_width, arrow=LAST,fill="black",smooth=True)    #draw graph edges
                         if self.wage_var.get()==1:
-                            canvas.create_text(X_wage1,Y_wage1,fill="darkblue",font="Times 10 italic bold", text=graf.edge_wage[node1+node2])
+                            canvas.create_text(X_wage1,Y_wage1,fill="darkblue",font="Times 12 bold", text=graf.edge_wage[node1+node2])
                     else:
-                        canvas.create_line(node_x,node_y,X_wynik2,Y_wynik2,node2_x,node2_y,width=2, arrow=LAST,fill="black",smooth=True)    #draw graph edges
+                        canvas.create_line(node_x,node_y,X_wynik2,Y_wynik2,node2_x,node2_y,width=self.line_width, arrow=LAST,fill="black",smooth=True)    #draw graph edges
                         if self.wage_var.get()==1:
-                            canvas.create_text(X_wage2,Y_wage2,fill="darkblue",font="Times 10 italic bold", text=graf.edge_wage[node1+node2])
+                            canvas.create_text(X_wage2,Y_wage2,fill="darkblue",font="Times 12 bold", text=graf.edge_wage[node1+node2])
 
 
                     self.temp=graf.times_has_been_drawn[node1+node2]
@@ -1742,11 +1876,13 @@ class main:
             self.isConsistent(visited,node1)
             for index in visited:
                 if visited[index]==False:
-                    self.text+="Edge "
-                    self.text+=str(node1)+str(node2)
-                    self.text+=" is critical\r\n"
-                    self.critical_edges.append(node1+node2)
-                    break;
+                    if node1+node2 not in self.critical_edges:
+                        self.text+="Edge "
+                        self.text+=str(node1)+str(node2)
+                        self.text+=" is critical\r\n"
+                        self.critical_edges.append(node1+node2)
+                        self.critical_edges.append(node2+node1)
+                        break;
             graf.add_edge_undirected(node1,node2)
 
 ###############################################
@@ -1772,7 +1908,6 @@ class main:
             return self.text
         else:
             return "Nodes aren't connected"
-
 
     def areConnected(self,visited,start_node,end_node):
         visited[start_node]=True
@@ -1850,31 +1985,45 @@ class main:
         if len(graf.nodes)>0:
             visited=self.createVisited()
             u=list(graf.nodes)[0]
+            self.nodeslist=[]
             self.colors=["blue","green","yellow","black","red","brown","orange"]
             self.groups={}
             self.colored={}
+
+
+            for color in self.colors:
+                self.groups[color]=[]
+
+            if type=="node_random":
+                for node in graf.nodes:
+                    self.nodeslist.append(node)
+                u=random.choice(self.nodeslist)
+
             if type=="node_deg":
                 for index in graf.adj_list:
                     if len(graf.adj_list[u])<len(graf.adj_list[index]):
                         u=index
-            for color in self.colors:
-                self.groups[color]=[]
+
             self.groups["blue"].append(u)
-            print(self.groups)
+
+            if type=="node_random":
+                self.color_random(visited,u)
             if type=="adj_mat":
                 self.color_adj_mat(visited,u)
             if type=="node_deg":
                 self.color_node_deg(visited,u)
-            print(self.groups)
+
+
             for color in self.groups:
                 for nodes in self.groups[color]:
                     self.c.create_oval(graf.return_X(nodes)-8,graf.return_Y(nodes)-8,graf.return_X(nodes)+8,graf.return_Y(nodes)+8,width=1,fill=str(color))
+
         else:
             messagebox.showerror("Error", "Graf has no nodes")
 
-
     def color_adj_mat(self,visited,u):
         visited[u]=True
+
         for index in graf.nodes:
             if visited[index]==False:
                 for color in self.groups:
@@ -1887,10 +2036,10 @@ class main:
                         self.color_adj_mat(visited,index)
                         break;
 
-
     def color_node_deg(self,visited,u):
         visited[u]=True
         chosen_node=False
+
         for node in graf.nodes:
             if visited[node]==False:
                 chosen_node=node
@@ -1899,8 +2048,6 @@ class main:
             for index in graf.adj_list:
                 if len(graf.adj_list[chosen_node])<len(graf.adj_list[index]) and visited[index]==False:
                     chosen_node=index
-            print("chosen_node",chosen_node)
-            print("node deg",len(graf.adj_list[chosen_node]))
             for color in self.groups:
                 nextcolor=False
                 for nodes in graf.adj_list[chosen_node]:
@@ -1910,6 +2057,33 @@ class main:
                     self.groups[color].append(chosen_node)
                     self.color_node_deg(visited,chosen_node)
                     break;
+
+    def color_random(self,visited,u):
+        visited[u]=True
+        i=0
+        for node in self.nodeslist:
+            if node==u:
+                break
+            i+=1
+        self.nodeslist.pop(i)
+
+        chosen_node=u
+
+        if self.nodeslist:
+            while visited[chosen_node]==True:
+                chosen_node=random.choice(self.nodeslist)
+
+        if visited[chosen_node]==False:
+            for color in self.groups:
+                nextcolor=False
+                for nodes in graf.adj_list[chosen_node]:
+                    if nodes in self.groups[color]:
+                        nextcolor=True
+                if nextcolor==False:
+                    self.groups[color].append(chosen_node)
+                    self.color_random(visited,chosen_node)
+                    break;
+
 
 
 ###############################################
@@ -2039,9 +2213,9 @@ class main:
 
     def save(self):
         graf.convert_to_adj_list()
-    #    f=asksaveasfile(mode='w',defaultextension=".txt")
-        filename="Savedgraf.txt"
-        f=open(filename,"w+")
+        f=asksaveasfile(mode='w',defaultextension=".txt")
+    #    filename="Savedgraf.txt"
+    #    f=open(filename,"w+")
         for index in graf.nodes:
             f.write(index)
             f.write(" ")
@@ -2064,9 +2238,9 @@ class main:
         f.close()
 
     def load(self):
-        self.clear_canvas()
-    #   filename=askopenfilename()
-        filename="Savedgraf.txt"
+        self.clear_canvas(self.c)
+        filename=askopenfilename()
+    #    filename="Savedgraf.txt"
         f=open(filename,"r")
         method="node"
         f1= f.readlines()
