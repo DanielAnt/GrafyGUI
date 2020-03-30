@@ -259,7 +259,7 @@ class main:
         self.print_space.insert(INSERT, self.text, ("a"))
         self.print_space.tag_config("a",foreground="black",font="times 11")
 
-    def create_line_arc(self,node1,node2):
+    def create_line_arc(self,node1,node2,canvas):
         if node1==node2:
             self.temp=graf.times_has_been_drawn[node1+node2]
             if self.temp%2==0:
