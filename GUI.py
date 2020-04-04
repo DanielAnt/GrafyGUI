@@ -236,20 +236,23 @@ class main:
                     self.create_line_arc(node1,node2,canvas)
 
     def print_graph(self):
-        self.text=graf.name
-        self.text+="\n"
+        text=graf.name
+        text+="\n"
         for source in graf.nodes:
-            self.text+=str(source)
-            self.text+=":\n"
+            text+=str(source)
+            text+=":\n"
             for keys in graf.nodes[source]:
-                self.text+=str(keys)
+                text+=str(keys)
                 if self.wage_var.get()==1:
-                    self.text+="-"
-                    self.text+=str(graf.edge_wage[keys])
-                self.text+="\n"
-            self.text+="\n"
+                    text+="-"
+                    text+=str(graf.edge_wage[keys])
+                text+="\n"
+            text+="\n"
+        self.print_into_printspace(text)
+
+    def print_text_into_printspace(self,text_to_print):
         self.print_space.delete("1.0",END)
-        self.print_space.insert(INSERT, self.text, ("a"))
+        self.print_space.insert(INSERT, text_to_print, ("a"))
         self.print_space.tag_config("a",foreground="black",font="times 11")
 
     def create_line_arc(self,node1,node2,canvas):
@@ -395,8 +398,7 @@ class main:
                                 messagebox.showerror("Error", "You can't place two nodes in the same place")
                         if self.exist==False:
                             graf.add_node(self.draw_Entry.get(),self.new_x, self.new_y)
-                            self.c.create_image(self.new_x,self.new_y, image=photo)
-                            self.c.create_text(self.new_x+0,self.new_y-25,fill="darkblue",font="Times 14 bold", text=self.draw_Entry.get())
+                            self.draw_graph()
                     else:
                         messagebox.showerror("Error", "You can't add more then one node with the same name")
 
@@ -666,7 +668,7 @@ class main:
             for row in range(self.temp_NodeQuantity):
                 i+=int(self.entry_matrix[str(row)+str(column)].get())
                 if self.entry_matrix[str(row)+str(column)].get().isnumeric():
-                    if int(self.entry_matrix[str(row)+str(column)].get())==1 or int(self.entry_matrix[str(row)+str(column)].get())==0:
+                    if int(self.entry_matrix[str(row)+str(column)].get())==1 or int(self.entry_matrix[str(row)+str(column)].get())==0 or int(self.entry_matrix[str(row)+str(column)].get())==2:
                         graf.create_inc_matrix(str(row)+str(column),self.entry_matrix[str(row)+str(column)].get())
                     else:
                         self.matrix_error=True
@@ -728,7 +730,7 @@ class main:
             for row in range(int(self.temp_NodeQuantity)):
                 i+=int(self.entry_matrix[str(row)+"-"+str(column)].get())
                 if self.entry_matrix[str(row)+"-"+str(column)].get().isnumeric():
-                    if int(self.entry_matrix[str(row)+"-"+str(column)].get())==1 or int(self.entry_matrix[str(row)+"-"+str(column)].get())==0:
+                    if int(self.entry_matrix[str(row)+"-"+str(column)].get())==1 or int(self.entry_matrix[str(row)+"-"+str(column)].get())==0 or int(self.entry_matrix[str(row)+"-"+str(column)].get())==2:
                         graf.create_inc_matrix(str(row)+str(column),self.entry_matrix[str(row)+"-"+str(column)].get())
                     else:
                         self.matrix_error=True
@@ -1987,6 +1989,12 @@ class main:
             u=list(graf.nodes)[0]
             self.nodeslist=[]
             self.colors=["blue","green","yellow","black","red","brown","orange"]
+            text="Color rank\r\n"
+            i=1
+            for color in self.colors:
+                text+=color+" is "+str(i)+"\r\n"
+                i+=1
+            self.print_text_into_printspace(text)
             self.groups={}
             self.colored={}
 

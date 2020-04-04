@@ -61,6 +61,8 @@ class Graf:
                 if node1+node2==keys and nodes==node1 and remove_first==False:
                     self.nodes[nodes].pop(i)
                     remove_first=True
+                    if node1==node2:
+                        continue
                 if node2+node1==keys and nodes==node2 and remove_second==False:
                     self.nodes[nodes].pop(i)
                     remove_second=True
@@ -79,7 +81,8 @@ class Graf:
         if temp_first_edgequantity_equal_one==True:
             del self.edge_quantity[node1+node2]
         if temp_second_edgequantity_equal_one==True:
-            del self.edge_quantity[node2+node1]
+            if node1!=node2:
+                del self.edge_quantity[node2+node1]
             self.convert_to_adj_list()
 
     def add_edge_undirected(self, node_1, node_2, wage=1):
@@ -173,6 +176,8 @@ class Graf:
                     node2=str(l)
                 if self.incidence_matrix[index]==['1'] and node1==None:
                     node1=str(l)
+                if self.incidence_matrix[index]==['2']:
+                    self.add_edge_undirected(str(l),str(l))
                 if node1 and node2:
                     self.add_edge_undirected(node1,node2)
                     node1=None
@@ -188,6 +193,8 @@ class Graf:
                     node2=str(l)
                 if self.incidence_matrix[index]==['1'] and node1==None:
                     node1=str(l)
+                if self.incidence_matrix[index]==['2']:
+                    self.add_edge_undirected(self.reversedpointer[str(l)],self.reversedpointer[str(l)])
                 if node1 and node2:
                     self.add_edge_undirected(self.reversedpointer[str(node1)],self.reversedpointer[str(node2)])
                     node1=None
@@ -267,7 +274,10 @@ class Graf:
                         for quantity in range(int(self.edge_quantity[node+key])):
                             for nodenumber in range(len(self.pointer)):
                                 if str(nodenumber)==str((self.pointer[node])) or str(nodenumber)==str((self.pointer[key])):
-                                    self.incidence_matrix[str(nodenumber)+"-"+str(i)]=1
+                                    if node==key:
+                                        self.incidence_matrix[str(nodenumber)+"-"+str(i)]=2
+                                    else:
+                                        self.incidence_matrix[str(nodenumber)+"-"+str(i)]=1
                                 else:
                                     self.incidence_matrix[str(nodenumber)+"-"+str(i)]=0
                             i+=1
