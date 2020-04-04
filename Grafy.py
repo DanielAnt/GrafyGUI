@@ -171,7 +171,7 @@ class Graf:
             node1=None
             node2=None
             for l in range(nodequantity):
-                index=str(l)+str(i)
+                index=str(l)+"-"+str(i)
                 if self.incidence_matrix[index]==['1'] and node1!=None:
                     node2=str(l)
                 if self.incidence_matrix[index]==['1'] and node1==None:
@@ -188,7 +188,7 @@ class Graf:
             node1=None
             node2=None
             for l in range(nodequantity):
-                index=str(l)+str(i)
+                index=str(l)+"-"+str(i)
                 if self.incidence_matrix[index]==['1'] and node1!=None:
                     node2=str(l)
                 if self.incidence_matrix[index]==['1'] and node1==None:

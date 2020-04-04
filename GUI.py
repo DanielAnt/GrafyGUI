@@ -172,6 +172,7 @@ class main:
                             text+=" , "
                             text+=str(graf.adjacency_matrix[str(row)+"-"+str(column)])
                 text+=" ]"
+            graf.adjacency_matrix={}
             return text
 
     def print_graph_inc_matrix(self):
@@ -198,6 +199,7 @@ class main:
                             text+=" , "
                             text+=str(graf.incidence_matrix[str(row)+"-"+str(column)])
                 text+=" ]"
+            graf.incidence_matrix={}
             return text
 
     def print_graph_adj_list(self):
@@ -534,8 +536,6 @@ class main:
         if len(graf.nodes)>0:
             graf.convert_to_adj_matrix()
             self.temp_NodeQuantity=int(sqrt(len(graf.adjacency_matrix)))
-            print("len",len(graf.adjacency_matrix))
-            print("nodequantity",self.temp_NodeQuantity)
             self.matrix_window= Toplevel()
             self.matrix_window.grab_set()
             self.matrix_window.resizable(False,False)
@@ -605,7 +605,9 @@ class main:
             graf.convert_adj_matrix_edit()
             self.draw_graph()
             self.matrix_window.destroy()
+            graf.adjacency_matrix={} #clears matrix
         else:
+            graf.adjacency_matrix={} #clears matrix
             messagebox.showerror("Error", "Graph is empty")
 
 
@@ -669,7 +671,7 @@ class main:
                 i+=int(self.entry_matrix[str(row)+str(column)].get())
                 if self.entry_matrix[str(row)+str(column)].get().isnumeric():
                     if int(self.entry_matrix[str(row)+str(column)].get())==1 or int(self.entry_matrix[str(row)+str(column)].get())==0 or int(self.entry_matrix[str(row)+str(column)].get())==2:
-                        graf.create_inc_matrix(str(row)+str(column),self.entry_matrix[str(row)+str(column)].get())
+                        graf.create_inc_matrix(str(row)+"-"+str(column),self.entry_matrix[str(row)+str(column)].get())
                     else:
                         self.matrix_error=True
                         break;
@@ -683,12 +685,13 @@ class main:
             graf.convert_inc_matrix(self.temp_NodeQuantity,self.temp_EdgeQuantity,self.draw_ratio)
             self.draw_graph()
             self.matrix_window.destroy() # submits entered matrix into graph and draws it
+            self.incidence_matrix={} #clears matrix
         else:
-            graf.incidence_matrix={} #submits matrix
+            graf.incidence_matrix={} #clears matrix
             messagebox.showerror("Error", "Wrong data")
 
     def inc_matrix_edit(self):
-        if len(graf.nodes)>0:
+        if len(graf.edge_quantity)>0:
             graf.convert_to_inc_matrix()
             self.temp_NodeQuantity=int(len(graf.pointer))
             matrix_length=len(graf.incidence_matrix)
@@ -722,16 +725,18 @@ class main:
                     self.entry_matrix[index]=matrix_entry
             self.adjacency_matrix_submit= Button(self.frame_two, width=15,text="Submit",command=self.inc_matrix_edit_submit)
             self.adjacency_matrix_submit.pack(side=TOP)
+        else:
+            messagebox.showerror("Error", "No edges")
 
     def inc_matrix_edit_submit(self):
         self.matrix_error=False
         for column in range(int(self.temp_EdgeQuantity)):
             i=0
             for row in range(int(self.temp_NodeQuantity)):
-                i+=int(self.entry_matrix[str(row)+"-"+str(column)].get())
                 if self.entry_matrix[str(row)+"-"+str(column)].get().isnumeric():
+                    i+=int(self.entry_matrix[str(row)+"-"+str(column)].get())
                     if int(self.entry_matrix[str(row)+"-"+str(column)].get())==1 or int(self.entry_matrix[str(row)+"-"+str(column)].get())==0 or int(self.entry_matrix[str(row)+"-"+str(column)].get())==2:
-                        graf.create_inc_matrix(str(row)+str(column),self.entry_matrix[str(row)+"-"+str(column)].get())
+                        graf.create_inc_matrix(str(row)+"-"+str(column),self.entry_matrix[str(row)+"-"+str(column)].get())
                     else:
                         self.matrix_error=True
                         break;
@@ -751,8 +756,9 @@ class main:
             graf.convert_inc_matrix_edit(self.temp_NodeQuantity,self.temp_EdgeQuantity)
             self.draw_graph()
             self.matrix_window.destroy() # submits entered matrix into graph and draws it
+            graf.incidence_matrix={}  #clears matrix
         else:
-            graf.incidence_matrix={} #submits matrix
+            graf.incidence_matrix={} #clears matrix
             messagebox.showerror("Error", "Wrong data")
 
 ###############################################
@@ -1145,7 +1151,7 @@ class main:
         ######## Canvas ##################
         self.graph_tests_canvas=Canvas(self.graph_tests_canvas_frame,width=600,height=500, bg="white")
         self.graph_tests_canvas.pack(fill=BOTH,expand=True)
-        self.graph_tests_text=Text(self.graph_tests_canvas_frame,height=1)
+        self.graph_tests_text=Text(self.graph_tests_canvas_frame,height=2,width=120)
         self.graph_tests_text.pack(side=BOTTOM)
 
     def graph_tests_eulerian(self):
@@ -2111,113 +2117,39 @@ class main:
         self.dev_window_frame=Frame(self.dev_window)
         self.dev_window_frame.pack(fill=BOTH, expand=False)
 
-        self.dev_print_grafnodes= Button(self.dev_window_frame,text="Print GRAF.NODES",command=lambda: print(graf.nodes))
-        self.dev_print_cordsX= Button(self.dev_window_frame,text="Print cordsX",command=lambda: print(graf.cordsX) )
-        self.dev_print_cordsY= Button(self.dev_window_frame,text="Print cordsY",command=lambda: print(graf.cordsY))
-        self.dev_print_edge_quantity= Button(self.dev_window_frame,text="Print edge quantity",command=lambda: print(graf.edge_quantity))
-        self.dev_print_adjacencymatrix= Button(self.dev_window_frame,text="Print ADJACENCY",command= self.print_graph_adj_matrix)
-        self.dev_print_incidencematrix= Button(self.dev_window_frame,text="Print var incmatrix",command=lambda: print(graf.incidence_matrix))
-        self.dev_print_euler= Button(self.dev_window_frame,text="Print INCIDENCE MATRIX",command=self.print_graph_inc_matrix)
-        self.dev_print_adj_list= Button(self.dev_window_frame,text="Print adj_list",command=lambda: print(graf.adj_list))
-        self.dev_print_euler_cycles= Button(self.dev_window_frame,text="Eulerian cycles/paths",command=self.printforall)
-        self.dev_add_node_label=Label(self.dev_window_frame,text="ADD NODE")
-        self.dev_add_node_entry_name= Entry(self.dev_window_frame,width=4)
-        self.dev_add_node_entry_cordX= Entry(self.dev_window_frame,width=4)
-        self.dev_add_node_entry_cordY= Entry(self.dev_window_frame,width=4)
-        self.dev_add_node_button_submit= Button(self.dev_window_frame,text="Submit", command=self.dev_add_node,width=4)
-        self.dev_add_edge_label=Label(self.dev_window_frame,text="ADD EDGE")
-        self.dev_add_edge_entry_node1= Entry(self.dev_window_frame,width=4)
-        self.dev_add_edge_entry_node2= Entry(self.dev_window_frame,width=4)
-        self.dev_add_edge_entry_wage= Entry(self.dev_window_frame,width=4)
-        self.dev_add_edge_button_submit= Button(self.dev_window_frame,text="Submit", command=self.dev_add_edge,width=4)
-        self.dev_remove_edge_label=Label(self.dev_window_frame,text="REMOVE EDGE")
-        self.dev_remove_edge_entry_node1= Entry(self.dev_window_frame,width=4)
-        self.dev_remove_edge_entry_node2= Entry(self.dev_window_frame,width=4)
-        self.dev_remove_edge_button_submit= Button(self.dev_window_frame,text="Submit", command=self.dev_remove_edge,width=4)
-        self.dev_hamilton= Button(self.dev_window_frame,text="Convert to adj mat", command= graf.convert_to_adj_matrix,width=15)
-        self.dev_bfs_label=Label(self.dev_window_frame,text="BFS")
-        self.dev_bfs_entry= Entry(self.dev_window_frame,width=4)
-        self.dev_bfs_button= Button(self.dev_window_frame,width=15,text="Submit", command=self.BFS)
-        self.dev_dfs_label=Label(self.dev_window_frame,text="DFS")
-        self.dev_dfs_entry= Entry(self.dev_window_frame,width=4)
-        self.dev_dfs_button= Button(self.dev_window_frame,width=15,text="Submit", command=self.DFS)
-        self.dev_critical_edges= Button(self.dev_window_frame,width=15,text="Critical Edges", command=self.critical_edge)
-        self.dev_draw_graph= Button(self.dev_window_frame,width=15,text="COLORING", command=self.coloring)
-        self.dev_checkout= Checkbutton(self.dev_window_frame,width=15,text="Dev_checkout", variable=self.showcords)
-        self.dev_SPW_node= Entry(self.dev_window_frame,width=4)
-        self.dev_shortest_path_wage= Button(self.dev_window_frame,width=15,text="Shortest Wage Path", command=lambda: self.SPW_all(self.dev_SPW_node.get()))
-        self.dev_SPW_for_all_node1= Entry(self.dev_window_frame,width=4)
-        self.dev_SPW_for_all_node2= Entry(self.dev_window_frame,width=4)
-        self.dev_shortest_path_wage_for_all= Button(self.dev_window_frame,width=15,text="Shortest Wage Path", command=lambda: self.SPW(self.dev_SPW_for_all_node1.get(),self.dev_SPW_for_all_node2.get()))
+        self.dev_print_grafnodes= Button(self.dev_window_frame,text="Print graf.nodes",command=lambda: print(graf.nodes))
+        self.dev_print_cordsX= Button(self.dev_window_frame,text="Print graf.cordsX",command=lambda: print(graf.cordsX))
+        self.dev_print_cordsY= Button(self.dev_window_frame,text="Print graf.cordsY",command=lambda: print(graf.cordsY))
+        self.dev_print_edge_quantity= Button(self.dev_window_frame,text="Print graf.edge_quantity",command=lambda: print(graf.edge_quantity))
+        self.dev_print_adjacencymatrix= Button(self.dev_window_frame,text="Print graf.adjacency_matrix",command=lambda: print(graf.adjacency_matrix))
+        self.dev_print_incidencematrix= Button(self.dev_window_frame,text="Print graf.incidence_matrix",command=lambda: print(graf.incidence_matrix))
+        self.dev_print_euler= Button(self.dev_window_frame,text="Print graf.times_has_been_drawn",command=lambda: print(graf.times_has_been_drawn))
+        self.dev_print_adj_list= Button(self.dev_window_frame,text="Print graf.pointer",command=lambda: print(graf.pointer))
+        self.dev_print_reversedpointer= Button(self.dev_window_frame,text="Print graf.reversedpointer",command=lambda: print(graf.reversedpointer))
+        self.dev_print_euler_cycles= Button(self.dev_window_frame,text="Print graf.adj_list",command=lambda: print(graf.adj_list))
 
 
-        self.dev_print_grafnodes.grid(row=0,column=0)
-        self.dev_print_cordsX.grid(row=1,column=0)
-        self.dev_print_cordsY.grid(row=2,column=0)
-        self.dev_print_edge_quantity.grid(row=3,column=0)
-        self.dev_print_adjacencymatrix.grid(row=4,column=0)
-        self.dev_print_incidencematrix.grid(row=5,column=0)
-        self.dev_print_adj_list.grid(row=6,column=0)
-        self.dev_print_euler.grid(row=7,column=0)
-        self.dev_print_euler_cycles.grid(row=8,column=0)
-        self.dev_add_node_label.grid(row=9,column=0)
-        self.dev_add_node_entry_name.grid(row=9,column=1)
-        self.dev_add_node_entry_cordX.grid(row=9,column=2)
-        self.dev_add_node_entry_cordY.grid(row=9,column=3)
-        self.dev_add_node_button_submit.grid(row=9,column=4)
-        self.dev_add_edge_label.grid(row=10,column=0)
-        self.dev_add_edge_entry_node1.grid(row=10,column=1)
-        self.dev_add_edge_entry_node2.grid(row=10,column=2)
-        self.dev_add_edge_entry_wage.grid(row=10,column=3)
-        self.dev_add_edge_button_submit.grid(row=10,column=4)
-        self.dev_remove_edge_label.grid(row=11,column=0)
-        self.dev_remove_edge_entry_node1.grid(row=11,column=1)
-        self.dev_remove_edge_entry_node2.grid(row=11,column=2)
-        self.dev_remove_edge_button_submit.grid(row=11,column=3)
-        self.dev_hamilton.grid(row=12,column=0)
-        self.dev_bfs_label.grid(row=13,column=0)
-        self.dev_bfs_entry.grid(row=13,column=1)
-        self.dev_bfs_button.grid(row=13,column=2)
-        self.dev_dfs_label.grid(row=14,column=0)
-        self.dev_dfs_entry.grid(row=14,column=1)
-        self.dev_dfs_button.grid(row=14,column=2)
-        self.dev_critical_edges.grid(row=15,column=0)
-        self.dev_draw_graph.grid(row=16,column=0)
-        self.dev_checkout.grid(row=17,column=0)
-        self.dev_shortest_path_wage.grid(row=18,column=0)
-        self.dev_SPW_node.grid(row=19,column=0)
-        self.dev_shortest_path_wage.grid(row=19,column=1)
-        self.dev_SPW_for_all_node1.grid(row=20,column=0)
-        self.dev_SPW_for_all_node2.grid(row=20,column=1)
-        self.dev_shortest_path_wage_for_all.grid(row=20,column=2)
+        n=0
+        self.dev_print_grafnodes.grid(row=n,column=0)
+        n+=1
+        self.dev_print_cordsX.grid(row=n,column=0)
+        n+=1
+        self.dev_print_cordsY.grid(row=n,column=0)
+        n+=1
+        self.dev_print_edge_quantity.grid(row=n,column=0)
+        n+=1
+        self.dev_print_adjacencymatrix.grid(row=n,column=0)
+        n+=1
+        self.dev_print_incidencematrix.grid(row=n,column=0)
+        n+=1
+        self.dev_print_euler.grid(row=n,column=0)
+        n+=1
+        self.dev_print_adj_list.grid(row=n,column=0)
+        n+=1
+        self.dev_print_reversedpointer.grid(row=n,column=0)
+        n+=1
+        self.dev_print_euler_cycles.grid(row=n,column=0)
 
-    def dev_add_node(self):
-        if self.dev_add_node_entry_name.get() not in graf.nodes and self.dev_add_node_entry_cordX.get() and self.dev_add_node_entry_cordY.get():
-            graf.add_node(self.dev_add_node_entry_name.get(),self.dev_add_node_entry_cordX.get(),self.dev_add_node_entry_cordY.get())
-            self.draw_graph()
-        else:
-            messagebox.showerror("Error", "NIE")
-
-    def dev_add_edge(self):
-        if self.dev_add_edge_entry_node1.get() in graf.nodes and self.dev_add_edge_entry_node2.get() in graf.nodes:
-            if self.dev_add_edge_entry_wage.get():
-                if self.dev_add_edge_entry_wage.get().isnumeric():
-                    graf.add_edge_undirected(self.dev_add_edge_entry_node1.get(),self.dev_add_edge_entry_node2.get(),self.dev_add_edge_entry_wage.get())
-                    self.draw_graph()
-                else:
-                    messagebox.showerror("Error", "Wage must be a number")
-            else:
-                graf.add_edge_undirected(self.dev_add_edge_entry_node1.get(),self.dev_add_edge_entry_node2.get())
-                self.draw_graph()
-        else:
-            messagebox.showerror("Error", "NIE")
-
-    def dev_remove_edge(self):
-        if self.dev_remove_edge_entry_node1.get() and self.dev_remove_edge_entry_node2.get() and self.dev_remove_edge_entry_node2.get()+self.dev_remove_edge_entry_node1.get() in graf.edge_quantity:
-            graf.remove_edge(self.dev_remove_edge_entry_node1.get(),self.dev_remove_edge_entry_node2.get())
-            self.draw_graph()
-        else:
-            messagebox.showerror("Error", "NIE")
 
     def save(self):
         graf.convert_to_adj_list()
