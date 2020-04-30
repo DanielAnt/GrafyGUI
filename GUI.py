@@ -228,6 +228,8 @@ class main:
             canvas.create_image(graf.return_X(source),graf.return_Y(source), image=photo)
             canvas.create_text(graf.return_X(source)+15,graf.return_Y(source)-20,fill="darkblue",font="Times 14 bold", text=source)    #draw graph nodes
 
+
+
     def draw_edges(self,canvas):
         graf.convert_to_adj_list()
         graf.times_has_been_drawn={}
@@ -725,14 +727,14 @@ class main:
             for row in range(int(self.temp_NodeQuantity)):
                 for column in range(int(self.temp_EdgeQuantity)):
                     index=str(row)+"-"+str(column)
-                    matrix_entry= Entry(self.matrix_frame,width=3)
-                    matrix_entry.insert(END,graf.incidence_matrix[str(row)+"-"+str(column)])
+                    self.entry_matrix[index]= Entry(self.matrix_frame,width=3)
+                    self.entry_matrix[index].insert(END,graf.incidence_matrix[str(row)+"-"+str(column)])
                     if column==0:
                         matrix_label=Label(self.matrix_frame,text=graf.reversedpointer[str(row)])
                         matrix_label.grid(row=row,column=column,stick="nsew")
-                        matrix_entry.grid(row=row,column=column+1,stick="nsew")
+                        self.entry_matrix[index].grid(row=row,column=column+1,stick="nsew")
                     else:
-                        matrix_entry.grid(row=row,column=column+1,stick="nsew")
+                        self.entry_matrix[index].grid(row=row,column=column+1,stick="nsew")
                     self.entry_matrix[index]=matrix_entry
             self.adjacency_matrix_submit= Button(self.frame_two, width=15,text="Submit",command=self.inc_matrix_edit_submit)
             self.adjacency_matrix_submit.pack(side=TOP)
@@ -2053,7 +2055,6 @@ class main:
             for color in self.groups:
                 for nodes in self.groups[color]:
                     self.c.create_oval(graf.return_X(nodes)-8,graf.return_Y(nodes)-8,graf.return_X(nodes)+8,graf.return_Y(nodes)+8,width=1,fill=str(color))
-
         else:
             messagebox.showerror("Error", "Graf has no nodes")
 
@@ -2253,7 +2254,7 @@ if __name__ == '__main__':
 
     graf= Graf()
     root = Tk()
-    image = Image.open("node.jpg")
+    image = Image.open("node2.jpg")
     photo = ImageTk.PhotoImage(image)
     selected = Image.open("nodeselected.jpg")
     selectedPhoto = ImageTk.PhotoImage(selected)
