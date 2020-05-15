@@ -727,15 +727,15 @@ class main:
             for row in range(int(self.temp_NodeQuantity)):
                 for column in range(int(self.temp_EdgeQuantity)):
                     index=str(row)+"-"+str(column)
-                    self.entry_matrix[index]= Entry(self.matrix_frame,width=3)
-                    self.entry_matrix[index].insert(END,graf.incidence_matrix[str(row)+"-"+str(column)])
+                    entry_matrix= Entry(self.matrix_frame,width=3)
+                    entry_matrix.insert(END,graf.incidence_matrix[str(row)+"-"+str(column)])
                     if column==0:
                         matrix_label=Label(self.matrix_frame,text=graf.reversedpointer[str(row)])
                         matrix_label.grid(row=row,column=column,stick="nsew")
-                        self.entry_matrix[index].grid(row=row,column=column+1,stick="nsew")
+                        entry_matrix.grid(row=row,column=column+1,stick="nsew")
                     else:
-                        self.entry_matrix[index].grid(row=row,column=column+1,stick="nsew")
-                    self.entry_matrix[index]=matrix_entry
+                        entry_matrix.grid(row=row,column=column+1,stick="nsew")
+                    self.entry_matrix[index]=entry_matrix
             self.adjacency_matrix_submit= Button(self.frame_two, width=15,text="Submit",command=self.inc_matrix_edit_submit)
             self.adjacency_matrix_submit.pack(side=TOP)
         else:
@@ -1261,7 +1261,6 @@ class main:
             graf.times_has_been_drawn[index]=0
 
     def graph_tests_create_line(self,node1,node2,canvas,ratio=1,ifeuler=1,iteration=0):
-        print("w funkcji",iteration)
         node_x=graf.return_X(node1)
         node_y=graf.return_Y(node1)
         node2_x=graf.return_X(node2)
