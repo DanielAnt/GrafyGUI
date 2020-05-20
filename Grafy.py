@@ -6,6 +6,7 @@ class Graf:
         self.nodes = {}
         self.edge_quantity={}
         self.edge_wage={}
+        self.node_pointers={}
         self.adj_list={}
         self.adjacency_matrix={}
         self.incidence_matrix={}
@@ -116,8 +117,11 @@ class Graf:
             self.nodes[node2]=[]
         if node1 not in self.nodes:
             self.nodes[node1]=[]
+        if node2 not in self.node_pointers:
+            self.node_pointers[node2]=set()
         self.temp_node=node1
         self.temp_node+=node2
+        self.node_pointers[node2].add(node1)
         self.nodes[node1].append(self.temp_node)
         self.edge_wage[self.temp_node]=wage # addes directed edge
         self.add_edge_quantity(self.temp_node)
