@@ -32,7 +32,12 @@ class Graf:
     def change_wage(self,node1,node2,wage):
         if node1+node2 in self.edge_wage:
             self.edge_wage[str(node1)+str(node2)]=int(wage)
+        if node2+node1 in self.edge_wage:
             self.edge_wage[str(node2)+str(node1)]=int(wage)
+
+    def change_wage_directed(self,edge,wage):
+        if edge in self.edge_wage:
+            self.edge_wage[edge]=int(wage)
 
     def remove_node(self,node_1): #removes node
         self.temp_node=str(node_1)

@@ -55,6 +55,8 @@ class main:
         self.wage_graph = Checkbutton(self.controls, text="Draw Wages",selectcolor="white", variable=self.wage_var)
         self.inside_var=IntVar()
         self.inside_graph = Checkbutton(self.controls, text="Draw Inside",selectcolor="white", variable=self.inside_var)
+        self.checker_var=IntVar()
+        self.checker_CheckButton = Checkbutton(self.controls, text="Split lines",selectcolor="white", variable=self.checker_var)
 
 ############ Buttons.pack #################
         self.draw_Entry.pack(side="left",fill=Y, expand=True)
@@ -71,7 +73,9 @@ class main:
         self.directed_CheckButton.pack(side="left")
         self.wage_graph.pack(side="left")
         self.inside_graph.pack(side="left")
+        self.checker_CheckButton.pack(side="left")
         self.controls.pack(side=TOP,fill=X, expand=False)
+
 
 ############ Canvas #############################
 
@@ -115,6 +119,8 @@ class main:
         self.devmenu = Menu(self.menu)
         self.menu.add_cascade(label='DEVTOOLS',menu=self.devmenu)
         self.devmenu.add_command(label='Graph Data',command=self.open_dev_window)
+        self.devmenu.add_command(label='Wage Editor',command=self.open_wage_editor)
+        self.devmenu.add_command(label='Critical Path',command=self.open_critical_editor)
         self.file = Menu(self.menu)
         self.menu.add_cascade(label='file',menu=self.file)
         self.file.add_command(label='Save',command=self.save)
@@ -125,6 +131,8 @@ class main:
     #    print(self.showcords.get())
     #    if self.showcords.get()==1:
     #        self.c.itemconfigure(self.print, text=(event.x,event.y))
+
+
 
     def remove_node(self):
         if self.selected==True:
@@ -237,7 +245,7 @@ class main:
                 canvas.create_text(graf.return_X(source)+15,graf.return_Y(source)-20,fill="darkblue",font="Times 14 bold", text=source)    #draw graph nodes
             elif self.inside_var.get()==1:
                 canvas.create_image(graf.return_X(source),graf.return_Y(source), image=photo2)
-                canvas.create_text(graf.return_X(source)-15,graf.return_Y(source),fill="darkblue",font="Times 14 bold", text=source)    #draw graph nodes
+                canvas.create_text(graf.return_X(source),graf.return_Y(source)-17,fill="darkblue",font="Times 10 bold", text=source)    #draw graph nodes
 
 
     def draw_edges(self,canvas):
@@ -265,7 +273,7 @@ class main:
                     if y==y1:
                         y+=1
                     if self.wage_var.get()==1:
-                        z=35
+                        z=30
                         ymid=(y+y1)/2
                         xmid=(x+x1)/2
                         a1=-(x-x1)/(y-y1)
@@ -278,7 +286,10 @@ class main:
                         X_wynik2=float((-VarB-sqrt(DELTA))/(2*VarA))
                         Y_wynik1=a1*X_wynik1+b1
                         Y_wynik2=a1*X_wynik2+b1
-                    canvas.create_text(X_wynik2,Y_wynik2,fill="darkblue",font="Times 10", text=graf.edge_wage[node1+node2])
+                        if self.inside_var.get()==1 and Y_wynik1<Y_wynik2:
+                            Y_wynik2=Y_wynik1
+                            X_wynik2=X_wynik1
+                    canvas.create_text(X_wynik2,Y_wynik2,fill="black",font="Times 10 bold", text=graf.edge_wage[node1+node2])
 
 
     def print_graph(self):
@@ -425,6 +436,10 @@ class main:
         self.clear_canvas_without_removing_graph(self.c)
         self.draw_edges(self.c)
         self.draw_nodes(self.c)
+        if self.checker_var.get()==1:
+            for x in range(1,2000,50):
+                self.c.create_line(x,0,x,1000,width=0.01,fill="gray",dash=(1,10))
+                self.c.create_line(0,x,2000,x,width=0.01,fill="gray",dash=(1,10))
 
 ###############################################
 
@@ -464,9 +479,9 @@ class main:
             start_node=None
             end_node=None
             for source in graf.cordsX:
-                if list(graf.cordsX[source])[0]>self.old_x-20 and list(graf.cordsX[source])[0]<self.old_x+20 and list(graf.cordsY[source])[0]>self.old_y-10 and list(graf.cordsY[source])[0]<self.old_y+10:
+                if list(graf.cordsX[source])[0]>self.old_x-10 and list(graf.cordsX[source])[0]<self.old_x+10 and list(graf.cordsY[source])[0]>self.old_y-10 and list(graf.cordsY[source])[0]<self.old_y+10:
                     start_node=source
-                if list(graf.cordsX[source])[0]>self.new_x-20 and list(graf.cordsX[source])[0]<self.new_x+20 and list(graf.cordsY[source])[0]>self.new_y-10 and list(graf.cordsY[source])[0]<self.new_y+10:
+                if list(graf.cordsX[source])[0]>self.new_x-10 and list(graf.cordsX[source])[0]<self.new_x+10 and list(graf.cordsY[source])[0]>self.new_y-10 and list(graf.cordsY[source])[0]<self.new_y+10:
                     end_node=source
             if start_node!=None and end_node!=None:
                 if self.edge_wage_entry.get() and self.edge_wage_entry.get().isnumeric():
@@ -486,11 +501,11 @@ class main:
             start_node=None
             end_node=None
             for source in graf.cordsX:
-                if list(graf.cordsX[source])[0]>self.old_x-25 and list(graf.cordsX[source])[0]<self.old_x+25 and list(graf.cordsY[source])[0]>self.old_y-10 and list(graf.cordsY[source])[0]<self.old_y+10:
+                if list(graf.cordsX[source])[0]>self.old_x-15 and list(graf.cordsX[source])[0]<self.old_x+15 and list(graf.cordsY[source])[0]>self.old_y-15 and list(graf.cordsY[source])[0]<self.old_y+15:
                     start_node=source
-                if list(graf.cordsX[source])[0]>self.new_x-25 and list(graf.cordsX[source])[0]<self.new_x+25 and list(graf.cordsY[source])[0]>self.new_y-10 and list(graf.cordsY[source])[0]<self.new_y+10:
+                if list(graf.cordsX[source])[0]>self.new_x-15 and list(graf.cordsX[source])[0]<self.new_x+15 and list(graf.cordsY[source])[0]>self.new_y-15 and list(graf.cordsY[source])[0]<self.new_y+15:
                     end_node=source
-            if start_node!=None and end_node!=None:
+            if start_node!=None and end_node!=None and start_node!=end_node:
                 if self.edge_wage_entry.get() and self.edge_wage_entry.get().isnumeric():
                     graf.add_edge_directed(start_node,end_node,self.edge_wage_entry.get())
                     self.draw_graph()
@@ -2171,12 +2186,14 @@ class main:
 ########### self.critical_path ###############
 
 
-    def critical_path(self):
+    def critical_path(self,return_critical=False):
         if self.criticalpath_Entry.get():
             s=self.criticalpath_Entry.get()
         else:
             s=list(graf.nodes)[0]
-
+        self.inside_var.set(1)
+        self.wage_var.set(1)
+        self.directed_var.set(1)
         all_graf_nodes=set()
         visited_nodes=set()
         visited_nodes_withwage=set()
@@ -2189,7 +2206,7 @@ class main:
         self.node_path={}
         self.edge_wage_extra={}
         self.under_node={}
-    #    addnode=False
+        addnode=False
 
         for node in graf.nodes:
             all_graf_nodes.add(node)
@@ -2205,6 +2222,10 @@ class main:
         while all_graf_nodes!=visited_nodes_withwage:
             """
             if not queue:
+                print("visted nodes with wage")
+                print(visited_nodes_with_wage)
+                print("visited nodes")
+                print("visited nodes")
                 nodestoadd=set()
                 for node in visited_nodes:
                     if node in graf.node_pointers:
@@ -2223,6 +2244,7 @@ class main:
                     visited_nodes.add(node)
                     queue.append(node)
                 addnode=False
+
             """
             s=queue.pop(0)
             for i in graf.adj_list[s]:
@@ -2257,6 +2279,9 @@ class main:
                 max_wage=self.node_wage[node]
                 saved_node=node
 
+        if return_critical==True:
+            return self.node_wage[saved_node]
+
         longest_path=self.node_path[saved_node].split("->")
         for node in longest_path:
             self.node_wage_extra[node]=self.node_wage[node]
@@ -2267,10 +2292,19 @@ class main:
                         self.node_wage_extra[node1]=int(self.node_wage[node])-int(graf.edge_wage[str(node1)+str(node)])
                         visited_nodes_withextrawage.add(node1)
 
-        visited=self.createVisited()
         queue=[]
         queue.append(saved_node)
+        for node in graf.adj_list:
+            if not graf.adj_list[node] and saved_node!=node:
+                self.node_wage_extra[node]=self.node_wage[saved_node]
+                queue.append(node)
+                visited_nodes_withextrawage.add(node)
+
+        visited=self.createVisited()
         while visited_nodes_withextrawage!=all_graf_nodes:
+
+            if not queue:
+                print("Graf ma kilka wydażeń końcowych")
             actucal_node=queue.pop(0)
             if actucal_node in graf.node_pointers:
                 for i in graf.node_pointers[actucal_node]:
@@ -2299,7 +2333,21 @@ class main:
 
 
         self.draw_graph()
+        self.draw_critical_edges()
+        self.draw_nodes(self.c)
         self.draw_critical()
+
+    def draw_critical_edges(self):
+        for node in graf.nodes:
+            for node1 in graf.nodes:
+                if str(node)+str(node1) in self.edge_wage_extra:
+                    if self.edge_wage_extra[str(node)+str(node1)]==0:
+                        self.c.create_line(graf.return_X(node),graf.return_Y(node),graf.return_X(node1),graf.return_Y(node1),fill="blue",width=2)
+
+        #        for node in range(len(longest_path)):
+        #            if node<len(longest_path)-1:
+        #                self.c.create_line(graf.return_X(list(longest_path)[node]),graf.return_Y(list(longest_path)[node]),graf.return_X(list(longest_path)[node+1]),graf.return_Y(list(longest_path)[node+1]),fill="blue",width=2)
+
 
     def draw_critical(self):
         text=""
@@ -2310,9 +2358,9 @@ class main:
             text+="\n"
         self.print_text_into_printspace(text)
         for source in self.node_wage:
-            self.c.create_text(graf.return_X(source)+14,graf.return_Y(source)-13,fill="darkblue",font="Times 10 bold", text=str(self.node_wage[source]))
-            self.c.create_text(graf.return_X(source)+14,graf.return_Y(source)+13,fill="darkblue",font="Times 10 bold", text=str(self.node_wage_extra[source]))
-            self.c.create_text(graf.return_X(source),graf.return_Y(source)+50,fill="darkblue",font="Times 10 bold", text=str(self.under_node[source]))
+            self.c.create_text(graf.return_X(source)-16,graf.return_Y(source),fill="darkblue",font="Times 10", text=str(self.node_wage[source]))
+            self.c.create_text(graf.return_X(source)+16,graf.return_Y(source),fill="darkblue",font="Times 10", text=str(self.node_wage_extra[source]))
+            self.c.create_text(graf.return_X(source),graf.return_Y(source)+17,fill="darkblue",font="Times 10", text=str(self.under_node[source]))
         for node1 in graf.adj_list:
             for node2 in graf.adj_list[node1]:
                 x=graf.return_X(node1)
@@ -2324,7 +2372,7 @@ class main:
                 if y==y1:
                     y+=1
                 if self.wage_var.get()==1:
-                    z=35
+                    z=30
                     ymid=(y+y1)/2
                     xmid=(x+x1)/2
                     a1=-(x-x1)/(y-y1)
@@ -2337,8 +2385,144 @@ class main:
                     X_wynik2=float((-VarB-sqrt(DELTA))/(2*VarA))
                     Y_wynik1=a1*X_wynik1+b1
                     Y_wynik2=a1*X_wynik2+b1
-                self.c.create_text(X_wynik2+20,Y_wynik2,fill="darkblue",font="Times 10", text=("(",str(self.edge_wage_extra[node1+node2]),")"))
+                    if Y_wynik1<Y_wynik2:
+                        Y_wynik2=Y_wynik1
+                        X_wynik2=X_wynik1
+                self.c.create_text(X_wynik2+22,Y_wynik2,fill="black",font="Times 10 bold", text=("(",str(self.edge_wage_extra[node1+node2]),")"))
 
+    def open_wage_editor(self):
+        self.wage_editor_window=Toplevel()
+        self.wage_editor_window.grab_set()
+        self.wage_editor_window.attributes("-topmost",True)
+        self.wage_editor_window.title("Wage Editor")
+        self.wage_editor_window.resizable(False,False)
+        self.wage_editor={}
+
+        self.wage_editor_Frame=Frame(self.wage_editor_window)
+        self.wage_editor_Frame.pack(fill=BOTH, expand=False)
+        self.wage_label=Label(self.wage_editor_Frame,font="Times 10 italic bold",text="WAGES")
+        self.wage_label.grid(row=1,column=0,columnspan=2)
+        n=1
+
+        for edge in graf.edge_wage:
+            wage_label=Label(self.wage_editor_Frame,font="Times 10 italic bold",text=edge)
+            wage_entry= Entry(self.wage_editor_Frame,width=15,justify=RIGHT)
+            wage_entry.insert(END,graf.edge_wage[edge])
+            wage_label.grid(row=n,column=0)
+            wage_entry.grid(row=n,column=1)
+            self.wage_editor[edge]=wage_entry
+            n+=1
+
+        self.wage_submit=Button(self.wage_editor_Frame,text="Submit",command=self.change_wage)
+        self.wage_submit.grid(row=n,column=0,columnspan=2)
+
+    def change_wage(self):
+        for edge in self.wage_editor:
+            graf.change_wage_directed(edge,self.wage_editor[edge].get())
+            self.draw_graph()
+
+    def open_critical_editor(self):
+        self.critical_editor_window=Toplevel()
+        self.critical_editor_window.grab_set()
+        self.critical_editor_window.title("Critical Path Data")
+        self.critical_editor_window.resizable(False,False)
+        self.critical_editor_Frame=Frame(self.critical_editor_window)
+        self.critical_editor_Frame.pack(fill=BOTH, expand=False)
+        self.critical_editor_label=Label(self.critical_editor_Frame,font="Times 10 italic bold",text="Critical editor")
+        self.critical_editor_label.grid(row=1,column=0,columnspan=2)
+        self.critical_time_gr={}
+        self.critical_price_n={}
+        self.critical_price_gr={}
+        self.wage_editor={}
+        time=Label(self.critical_editor_Frame,font="Times 10 italic bold",text="Tn")
+        critical_time=Label(self.critical_editor_Frame,font="Times 10 italic bold",text="Tgr")
+        critical_price_n=Label(self.critical_editor_Frame,font="Times 10 italic bold",text="Kn")
+        critical_price_gr=Label(self.critical_editor_Frame,font="Times 10 italic bold",text="Kgr")
+        time.grid(row=0,column=1)
+        critical_time.grid(row=0,column=2)
+        critical_price_n.grid(row=0,column=3)
+        critical_price_gr.grid(row=0,column=4)
+
+        n=1
+
+        for edge in graf.edge_wage:
+            critical_label=Label(self.critical_editor_Frame,font="Times 10 italic bold",text=edge)
+            critical_time_n_entry=Entry(self.critical_editor_Frame,width=15,justify=RIGHT)
+            critical_time_n_entry.insert(END,graf.edge_wage[edge])
+            critical_time_gr_entry=Entry(self.critical_editor_Frame,width=15,justify=RIGHT)
+            critical_price_n_entry=Entry(self.critical_editor_Frame,width=15,justify=RIGHT)
+            critical_price_gr_entry=Entry(self.critical_editor_Frame,width=15,justify=RIGHT)
+            critical_price_n_entry.insert(END,"0")
+            critical_price_gr_entry.insert(END,"0")
+            critical_time_gr_entry.insert(END,graf.edge_wage[edge])
+
+        #    else:
+        #        critical_price_n_entry.insert(END,str(self.critical_price_n[edge].get()))
+        #        critical_price_gr_entry.insert(END,str(self.critical_price_gr[edge].get()))
+        #        critical_time_gr_entry.insert(END,str(graf.critical_time_gr[edge].get()))
+
+            critical_label.grid(row=n,column=0)
+            critical_time_n_entry.grid(row=n,column=1)
+            critical_time_gr_entry.grid(row=n,column=2)
+            critical_price_n_entry.grid(row=n,column=3)
+            critical_price_gr_entry.grid(row=n,column=4)
+
+            self.wage_editor[edge]=critical_time_n_entry
+            self.critical_time_gr[edge]=critical_time_gr_entry
+            self.critical_price_n[edge]=critical_price_n_entry
+            self.critical_price_gr[edge]=critical_price_gr_entry
+
+            n+=1
+
+        self.critical_metgr_submit=Button(self.critical_editor_Frame,text="MetGran",command=self.boundary_method)
+        self.critical_back_submit=Button(self.critical_editor_Frame,text="Cofnij",command=self.critical_back)
+        self.critical_metopt_submit=Button(self.critical_editor_Frame,text="MetOpt",command=self.optimal_method)
+        self.critical_metgr_submit.grid(row=n,column=1)
+        self.critical_metopt_submit.grid(row=n,column=2)
+        self.critical_back_submit.grid(row=n,column=3)
+
+
+    def critical_back(self):
+        for edge in self.wage_editor:
+            graf.change_wage_directed(edge,self.wage_editor[edge].get())
+        self.draw_graph()
+        self.critical_path()
+
+    def boundary_method(self):
+        self.critical_gradient={}
+        self.critical_boundrymethod_sum=0
+        for edge in self.wage_editor:
+            try:
+                self.critical_gradient[edge]=(int(self.critical_price_gr[edge].get())-int(self.critical_price_n[edge].get()))/(int(self.wage_editor[edge].get())-int(self.critical_time_gr[edge].get()))
+            except ZeroDivisionError:
+                continue
+            self.critical_boundrymethod_sum+=(int(self.wage_editor[edge].get())-int(self.critical_time_gr[edge].get()))*int(self.critical_gradient[edge])
+            graf.change_wage_directed(edge,self.critical_time_gr[edge].get())
+
+        self.draw_graph()
+        self.critical_path()
+
+        print(self.critical_gradient)
+        print("Suma dla metody granicznej")
+        print(self.critical_boundrymethod_sum)
+
+    def optimal_method(self):
+        self.critical_gradient={}
+        self.critical_boundrymethod_sum=0
+        for edge in self.wage_editor:
+            try:
+                self.critical_gradient[edge]=(int(self.critical_price_gr[edge].get())-int(self.critical_price_n[edge].get()))/(int(self.wage_editor[edge].get())-int(self.critical_time_gr[edge].get()))
+            except ZeroDivisionError:
+                continue
+            self.critical_boundrymethod_sum+=(int(self.wage_editor[edge].get())-int(self.critical_time_gr[edge].get()))*int(self.critical_gradient[edge])
+            graf.change_wage_directed(edge,self.critical_time_gr[edge].get())
+
+        max_value=self.critical_path(True)
+        print(max_value)
+        for edge in self.wage_editor:
+            graf.change_wage_directed(edge,self.wage_editor[edge].get())
+
+        self.critical_path()
 
 
 
@@ -2476,7 +2660,7 @@ if __name__ == '__main__':
     root = Tk()
     image = Image.open("node2.jpg")
     photo = ImageTk.PhotoImage(image)
-    node3 = Image.open("node3.png")
+    node3 = Image.open("node5.png")
     photo2 = ImageTk.PhotoImage(node3)
     selected = Image.open("nodeselected.jpg")
     selectedPhoto = ImageTk.PhotoImage(selected)
