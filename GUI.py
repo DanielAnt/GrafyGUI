@@ -49,6 +49,9 @@ class main:
         self.draw_graph_button= Button(self.buttons,width=10,text="Draw graph", command=self.draw_graph)
         self.criticalpath_Entry= Entry(self.buttons,width=5,justify=RIGHT)
         self.criticalpath_button= Button(self.buttons,width=10,text="CritPath", command=self.critical_path)
+        self.fordfulkerson_start_Entry=Entry(self.buttons,width=5,justify=RIGHT)
+        self.fordfulkerson_end_Entry=Entry(self.buttons,width=5,justify=RIGHT)
+        self.fordfulkerson_button= Button(self.buttons,width=10,text="Max_Flow", command=self.fordfulkerson)
         self.directed_var=IntVar()
         self.directed_CheckButton= Checkbutton(self.controls, text="Directed",selectcolor="white", variable=self.directed_var)
         self.wage_var=IntVar()
@@ -70,6 +73,9 @@ class main:
         self.draw_graph_button.pack(side="left")
         self.criticalpath_Entry.pack(side="left",fill=Y, expand=True)
         self.criticalpath_button.pack(side="left")
+        self.fordfulkerson_start_Entry.pack(side="left",fill=Y,expand=True)
+        self.fordfulkerson_end_Entry.pack(side="left",fill=Y,expand=True)
+        self.fordfulkerson_button.pack(side="left")
         self.directed_CheckButton.pack(side="left")
         self.wage_graph.pack(side="left")
         self.inside_graph.pack(side="left")
@@ -121,6 +127,9 @@ class main:
         self.devmenu.add_command(label='Graph Data',command=self.open_dev_window)
         self.devmenu.add_command(label='Wage Editor',command=self.open_wage_editor)
         self.devmenu.add_command(label='Critical Path',command=self.open_critical_editor)
+        self.devmenu.add_command(label='Critical Path edit',command=self.open_critical_editor_saved)
+        self.devmenu.add_command(label='Refresh node pointers',command=graf.refresh_node_pointers)
+
         self.file = Menu(self.menu)
         self.menu.add_cascade(label='file',menu=self.file)
         self.file.add_command(label='Save',command=self.save)
@@ -2218,13 +2227,20 @@ class main:
                 visited_nodes_withwage.add(node)
                 self.node_wage[node]=0
                 self.node_path[node]=str(node)
+        if s not in queue:
+            queue.append(s)
+            visited[s]=True
+            visited_nodes.add(s)
+            visited_nodes_withwage.add(s)
+            self.node_wage[s]=0
+            self.node_path[s]=str(s)
 
         while all_graf_nodes!=visited_nodes_withwage:
-            """
             if not queue:
                 print("visted nodes with wage")
-                print(visited_nodes_with_wage)
+                print(visited_nodes_withwage)
                 print("visited nodes")
+                print(visited)
                 print("visited nodes")
                 nodestoadd=set()
                 for node in visited_nodes:
@@ -2245,7 +2261,7 @@ class main:
                     queue.append(node)
                 addnode=False
 
-            """
+
             s=queue.pop(0)
             for i in graf.adj_list[s]:
                 if visited[i]==False:
@@ -2275,12 +2291,19 @@ class main:
                 max_wage=self.node_wage[node]
                 saved_node=node
                 first=False
-            if self.node_wage[node]>max_wage:
-                max_wage=self.node_wage[node]
-                saved_node=node
+            if self.node_wage[node]>=max_wage:
+                if self.node_wage[node]==max_wage and len(self.node_path[node])>len(self.node_path[saved_node]):
+                    max_wage=self.node_wage[node]
+                    saved_node=node
+                if self.node_wage[node]>max_wage:
+                    max_wage=self.node_wage[node]
+                    saved_node=node
+
 
         if return_critical==True:
-            return self.node_wage[saved_node]
+            return saved_node
+
+        self.critical_last_node=saved_node
 
         longest_path=self.node_path[saved_node].split("->")
         for node in longest_path:
@@ -2303,8 +2326,6 @@ class main:
         visited=self.createVisited()
         while visited_nodes_withextrawage!=all_graf_nodes:
 
-            if not queue:
-                print("Graf ma kilka wydażeń końcowych")
             actucal_node=queue.pop(0)
             if actucal_node in graf.node_pointers:
                 for i in graf.node_pointers[actucal_node]:
@@ -2429,7 +2450,7 @@ class main:
         self.critical_editor_Frame=Frame(self.critical_editor_window)
         self.critical_editor_Frame.pack(fill=BOTH, expand=False)
         self.critical_editor_label=Label(self.critical_editor_Frame,font="Times 10 italic bold",text="Critical editor")
-        self.critical_editor_label.grid(row=1,column=0,columnspan=2)
+        self.critical_editor_label.grid(row=0,column=0,columnspan=5)
         self.critical_time_gr={}
         self.critical_price_n={}
         self.critical_price_gr={}
@@ -2438,12 +2459,12 @@ class main:
         critical_time=Label(self.critical_editor_Frame,font="Times 10 italic bold",text="Tgr")
         critical_price_n=Label(self.critical_editor_Frame,font="Times 10 italic bold",text="Kn")
         critical_price_gr=Label(self.critical_editor_Frame,font="Times 10 italic bold",text="Kgr")
-        time.grid(row=0,column=1)
-        critical_time.grid(row=0,column=2)
-        critical_price_n.grid(row=0,column=3)
-        critical_price_gr.grid(row=0,column=4)
+        time.grid(row=1,column=1)
+        critical_time.grid(row=1,column=2)
+        critical_price_n.grid(row=1,column=3)
+        critical_price_gr.grid(row=1,column=4)
 
-        n=1
+        n=2
 
         for edge in graf.edge_wage:
             critical_label=Label(self.critical_editor_Frame,font="Times 10 italic bold",text=edge)
@@ -2456,10 +2477,6 @@ class main:
             critical_price_gr_entry.insert(END,"0")
             critical_time_gr_entry.insert(END,graf.edge_wage[edge])
 
-        #    else:
-        #        critical_price_n_entry.insert(END,str(self.critical_price_n[edge].get()))
-        #        critical_price_gr_entry.insert(END,str(self.critical_price_gr[edge].get()))
-        #        critical_time_gr_entry.insert(END,str(graf.critical_time_gr[edge].get()))
 
             critical_label.grid(row=n,column=0)
             critical_time_n_entry.grid(row=n,column=1)
@@ -2477,9 +2494,73 @@ class main:
         self.critical_metgr_submit=Button(self.critical_editor_Frame,text="MetGran",command=self.boundary_method)
         self.critical_back_submit=Button(self.critical_editor_Frame,text="Cofnij",command=self.critical_back)
         self.critical_metopt_submit=Button(self.critical_editor_Frame,text="MetOpt",command=self.optimal_method)
-        self.critical_metgr_submit.grid(row=n,column=1)
+        self.critical_metopt_Entry=Entry(self.critical_editor_Frame,width=10,justify=RIGHT)
+        self.critical_save_submit=Button(self.critical_editor_Frame,text="Save",command=self.critical_save)
+
+        self.critical_metgr_submit.grid(row=n,column=0)
+        self.critical_metopt_Entry.grid(row=n,column=1)
         self.critical_metopt_submit.grid(row=n,column=2)
         self.critical_back_submit.grid(row=n,column=3)
+        self.critical_save_submit.grid(row=n,column=4)
+
+    def open_critical_editor_saved(self):
+        self.critical_editor_window=Toplevel()
+        self.critical_editor_window.grab_set()
+        self.critical_editor_window.title("Critical Path Data")
+        self.critical_editor_window.resizable(False,False)
+        self.critical_editor_Frame=Frame(self.critical_editor_window)
+        self.critical_editor_Frame.pack(fill=BOTH, expand=False)
+        self.critical_editor_label=Label(self.critical_editor_Frame,font="Times 10 italic bold",text="Critical editor")
+        self.critical_editor_label.grid(row=0,column=0)
+        self.wage_editor={}
+        time=Label(self.critical_editor_Frame,font="Times 10 italic bold",text="Tn")
+        critical_time=Label(self.critical_editor_Frame,font="Times 10 italic bold",text="Tgr")
+        critical_price_n=Label(self.critical_editor_Frame,font="Times 10 italic bold",text="Kn")
+        critical_price_gr=Label(self.critical_editor_Frame,font="Times 10 italic bold",text="Kgr")
+        time.grid(row=0,column=1)
+        critical_time.grid(row=0,column=2)
+        critical_price_n.grid(row=0,column=3)
+        critical_price_gr.grid(row=0,column=4)
+
+        n=1
+
+        for edge in graf.edge_wage:
+            critical_label=Label(self.critical_editor_Frame,font="Times 10 italic bold",text=edge)
+            critical_time_n_entry=Entry(self.critical_editor_Frame,width=15,justify=RIGHT)
+            critical_time_gr_entry=Entry(self.critical_editor_Frame,width=15,justify=RIGHT)
+            critical_price_n_entry=Entry(self.critical_editor_Frame,width=15,justify=RIGHT)
+            critical_price_gr_entry=Entry(self.critical_editor_Frame,width=15,justify=RIGHT)
+
+            critical_time_n_entry.insert(END,self.saved_wage_editor[edge])
+            critical_price_n_entry.insert(END,self.saved_critical_price_n[edge])
+            critical_price_gr_entry.insert(END,self.saved_critical_price_gr[edge])
+            critical_time_gr_entry.insert(END,self.saved_critical_time_gr[edge])
+
+            critical_label.grid(row=n,column=0)
+            critical_time_n_entry.grid(row=n,column=1)
+            critical_time_gr_entry.grid(row=n,column=2)
+            critical_price_n_entry.grid(row=n,column=3)
+            critical_price_gr_entry.grid(row=n,column=4)
+
+            self.wage_editor[edge]=critical_time_n_entry
+            self.critical_time_gr[edge]=critical_time_gr_entry
+            self.critical_price_n[edge]=critical_price_n_entry
+            self.critical_price_gr[edge]=critical_price_gr_entry
+
+            n+=1
+
+        self.critical_metgr_submit=Button(self.critical_editor_Frame,text="MetGran",command=self.boundary_method)
+        self.critical_back_submit=Button(self.critical_editor_Frame,text="Cofnij",command=self.critical_back)
+        self.critical_metopt_Entry=Entry(self.critical_editor_Frame,width=10,justify=RIGHT)
+        self.critical_metopt_submit=Button(self.critical_editor_Frame,text="MetOpt",command=self.optimal_method)
+        self.critical_save_submit=Button(self.critical_editor_Frame,text="Save",command=self.critical_save)
+        self.critical_metgr_submit.grid(row=n,column=0)
+        self.critical_metopt_Entry.grid(row=n,column=1)
+        self.critical_metopt_submit.grid(row=n,column=2)
+        self.critical_back_submit.grid(row=n,column=3)
+        self.critical_save_submit.grid(row=n,column=4)
+
+
 
 
     def critical_back(self):
@@ -2493,10 +2574,10 @@ class main:
         self.critical_boundrymethod_sum=0
         for edge in self.wage_editor:
             try:
-                self.critical_gradient[edge]=(int(self.critical_price_gr[edge].get())-int(self.critical_price_n[edge].get()))/(int(self.wage_editor[edge].get())-int(self.critical_time_gr[edge].get()))
+                self.critical_gradient[edge]=(float(self.critical_price_gr[edge].get())-float(self.critical_price_n[edge].get()))/(float(self.wage_editor[edge].get())-float(self.critical_time_gr[edge].get()))
             except ZeroDivisionError:
                 continue
-            self.critical_boundrymethod_sum+=(int(self.wage_editor[edge].get())-int(self.critical_time_gr[edge].get()))*int(self.critical_gradient[edge])
+            self.critical_boundrymethod_sum+=(float(self.wage_editor[edge].get())-float(self.critical_time_gr[edge].get()))*float(self.critical_gradient[edge])
             graf.change_wage_directed(edge,self.critical_time_gr[edge].get())
 
         self.draw_graph()
@@ -2507,22 +2588,247 @@ class main:
         print(self.critical_boundrymethod_sum)
 
     def optimal_method(self):
+        self.calc_wage_editor={}
+        self.calc_critical_time_gr={}
+        self.calc_critical_price_n={}
+        self.calc_critical_price_gr={}
+        for edge in self.wage_editor:
+            self.calc_wage_editor[edge]=int(self.wage_editor[edge].get())
+            self.calc_critical_time_gr[edge]=int(self.critical_time_gr[edge].get())
+            self.calc_critical_price_n[edge]=int(self.critical_price_n[edge].get())
+            self.calc_critical_price_gr[edge]=int(self.critical_price_gr[edge].get())
         self.critical_gradient={}
         self.critical_boundrymethod_sum=0
+        self.critical_optmethod_sum=0
         for edge in self.wage_editor:
             try:
-                self.critical_gradient[edge]=(int(self.critical_price_gr[edge].get())-int(self.critical_price_n[edge].get()))/(int(self.wage_editor[edge].get())-int(self.critical_time_gr[edge].get()))
+                self.critical_gradient[edge]=(float(self.calc_critical_price_gr[edge])-float(self.calc_critical_price_n[edge]))/(float(self.calc_wage_editor[edge])-float(self.calc_critical_time_gr[edge]))
             except ZeroDivisionError:
                 continue
-            self.critical_boundrymethod_sum+=(int(self.wage_editor[edge].get())-int(self.critical_time_gr[edge].get()))*int(self.critical_gradient[edge])
-            graf.change_wage_directed(edge,self.critical_time_gr[edge].get())
+            self.critical_boundrymethod_sum+=(float(self.calc_wage_editor[edge])-float(self.calc_critical_time_gr[edge]))*float(self.critical_gradient[edge])
+            graf.change_wage_directed(edge,self.calc_critical_time_gr[edge])
 
-        max_value=self.critical_path(True)
-        print(max_value)
-        for edge in self.wage_editor:
-            graf.change_wage_directed(edge,self.wage_editor[edge].get())
+        if self.critical_metopt_Entry.get() and self.critical_metopt_Entry.get().isnumeric():
+            returned_node=self.critical_path(True)
+            max_value=self.node_wage[returned_node]
+            if max_value<=int(self.critical_metopt_Entry.get()):
+                max_value=int(self.critical_metopt_Entry.get())
+            else:
+                print("Czas jest nieosiągalny")
+        else:
+            returned_node=self.critical_path(True)
+            max_value=self.node_wage[returned_node]
 
+        for edge in self.calc_wage_editor:
+            graf.change_wage_directed(edge,self.calc_wage_editor[edge])
         self.critical_path()
+
+        current_value=self.node_wage[self.critical_last_node]
+        text_critical=""
+        while current_value>max_value:
+            current_path_value=current_value
+            while current_path_value>max_value:
+                if 'lowest_gradient' in locals():
+                    del lowest_gradient
+                value_diffrence=current_path_value-max_value
+                first=True
+                for node in self.node_path[self.critical_last_node].split("->"):
+                    if first==True:
+                        previous_node=node
+                        first=False
+                        continue
+                    if 'lowest_gradient' not in locals():
+                        if self.calc_critical_time_gr[str(previous_node)+str(node)]<self.calc_wage_editor[str(previous_node)+str(node)]:
+                            lowest_gradient=self.critical_gradient[str(previous_node)+str(node)]
+                            edge_with_lowest_gradient=str(previous_node)+str(node)
+                            time_diffrence=int(self.calc_wage_editor[edge_with_lowest_gradient])-int(self.calc_critical_time_gr[edge_with_lowest_gradient])
+                    if 'lowest_gradient' in locals():
+                        if self.calc_critical_time_gr[str(previous_node)+str(node)]<self.calc_wage_editor[str(previous_node)+str(node)]:
+                            if self.critical_gradient[str(previous_node)+str(node)]<lowest_gradient:
+                                lowest_gradient=self.critical_gradient[str(previous_node)+str(node)]
+                                edge_with_lowest_gradient=str(previous_node)+str(node)
+                                time_diffrence=int(self.calc_wage_editor[edge_with_lowest_gradient])-int(self.calc_critical_time_gr[edge_with_lowest_gradient])
+
+                    previous_node=node
+                if time_diffrence<=value_diffrence:
+                    current_path_value-=time_diffrence
+                    self.calc_wage_editor[edge_with_lowest_gradient]-=time_diffrence
+                    text_critical+='Czynnosc {} skrócono o {} \r\n'.format(edge_with_lowest_gradient,time_diffrence)
+                    #text_critical+='Czynnosc '+str(edge_with_lowest_gradient)+'skrócono o '+str(time_diffrence)
+
+                    self.critical_optmethod_sum+=time_diffrence*int(self.critical_gradient[edge_with_lowest_gradient])
+                elif time_diffrence>value_diffrence:
+                    current_path_value-=value_diffrence
+                    self.calc_wage_editor[edge_with_lowest_gradient]-=value_diffrence
+                    text_critical+='Czynnosc {} skrócono o {} \r\n'.format(edge_with_lowest_gradient,value_diffrence)
+                    #text_critical+='Czynnosc '+str(edge_with_lowest_gradient)+' skrócono o '+str(value_diffrence)
+                    self.critical_optmethod_sum+=value_diffrence*int(self.critical_gradient[edge_with_lowest_gradient])
+
+
+
+            for edge in self.calc_wage_editor:
+                graf.change_wage_directed(edge,self.calc_wage_editor[edge])
+            self.critical_path()
+            current_value=self.node_wage[self.critical_last_node]
+
+        print(text_critical)
+        #print(self.critical_boundrymethod_sum)
+        print("Koszt redukcji \r\n")
+        print(self.critical_optmethod_sum)
+
+    def critical_save(self):
+        self.saved_wage_editor={}
+        self.saved_critical_time_gr={}
+        self.saved_critical_price_n={}
+        self.saved_critical_price_gr={}
+        for edge in self.wage_editor:
+            self.saved_wage_editor[edge]=self.wage_editor[edge].get()
+            self.saved_critical_time_gr[edge]=self.critical_time_gr[edge].get()
+            self.saved_critical_price_n[edge]=self.critical_price_n[edge].get()
+            self.saved_critical_price_gr[edge]=self.critical_price_gr[edge].get()
+
+
+#################################################
+############# Metoda Forda Fulkersona ##########
+
+    def fordfulkerson(self):
+        self.inside_var.set(1)
+        self.wage_var.set(1)
+        self.directed_var.set(1)
+        self.actual_capacity={}
+        graf.refresh_node_pointers()
+
+        if self.fordfulkerson_start_Entry.get():
+            start_node=self.fordfulkerson_start_Entry.get()
+            end_node=self.fordfulkerson_end_Entry.get()
+        else:
+            start_node=list(graf.nodes)[0]
+            end_node=list(graf.nodes)[-1]
+        for edge in graf.edge_wage:
+            self.actual_capacity[edge]=0
+
+        exitloop=False
+        i=0
+        bottlecap_sum=0
+        while exitloop!=True:
+            i+=1
+            visited=self.createVisited()
+            self.ford_path={}
+            self.ford_path[start_node]=""
+            self.edge_left_flow=[]
+            self.queue=[]
+            self.DFSfordfulkerson(start_node,end_node,visited)
+            if len(self.edge_left_flow)==0:
+                exitloop=True
+                print("po ",i,"iteracjach")
+                i=100
+                continue
+            if visited[end_node]==True:
+                first=True
+                bottlecap_flow=min(self.edge_left_flow)
+                bottlecap_sum+=bottlecap_flow
+                print("---------------------------")
+                print(self.ford_path[end_node])
+                print("przepływ=", bottlecap_flow)
+                print("---------------------------")
+                for edge in self.ford_path[end_node].split(">"):
+                    if '+' in edge:
+                        self.actual_capacity[edge.replace('+','')]+=bottlecap_flow
+                    elif '-' in edge:
+                        self.actual_capacity[edge.replace('-','')]-=bottlecap_flow
+
+            else:
+                exitloop=True
+            sum=0
+            for node in graf.node_pointers[end_node]:
+                sum+=self.actual_capacity[str(node)+str(end_node)]
+            if 'sum_before' in locals():
+                if sum==sum_before:
+                    exitloop=True
+                else:
+                    sum_before=sum
+            else:
+                sum_before=sum
+
+        print("Maksymlany przepływ =", bottlecap_sum)
+        print(self.actual_capacity)
+        self.draw_graph()
+        self.draw_fordfulkerson()
+
+
+
+
+
+
+
+    def DFSfordfulkerson(self,node,end_node,visited):
+        visited[node]=True
+        self.queue.append(node)
+        found_next_node=False
+        for next_node in graf.adj_list[node]:
+            if visited[next_node]==False:
+                    if graf.edge_wage[str(node)+str(next_node)]-self.actual_capacity[str(node)+str(next_node)]>0:
+                        visited[next_node]=True
+                        self.edge_left_flow.append(int(graf.edge_wage[str(node)+str(next_node)])-int(self.actual_capacity[str(node)+str(next_node)]))
+                        self.ford_path[next_node]=str(self.ford_path[node])+">"+str(node)+"+"+str(next_node)
+                        self.DFSfordfulkerson(next_node,end_node,visited)
+                        found_next_node=True
+                        break
+        if found_next_node==False and node!=end_node:
+            if node in graf.node_pointers:
+                for next_node in graf.node_pointers[node]:
+                    if visited[next_node]==False:
+                        if self.actual_capacity[str(next_node)+str(node)]>0:
+                            visited[next_node]=True
+                            self.ford_path[next_node]=str(self.ford_path[node])+">"+str(next_node)+"-"+str(node)
+                            self.edge_left_flow.append(self.actual_capacity[str(next_node)+str(node)])
+                            self.DFSfordfulkerson(next_node,end_node,visited)
+                            found_next_node=True
+                            break
+        if found_next_node==False and str(node)!=str(end_node) and len(self.queue)>=2:
+            try:
+                self.queue.pop(-1)
+                node=self.queue.pop(-1)
+                self.DFSfordfulkerson(node,end_node,visited)
+            except IndexError:
+                print("Error")
+
+
+
+    def draw_fordfulkerson(self):
+        self.czasowe=set()
+        for node1 in graf.adj_list:
+            for node2 in graf.adj_list[node1]:
+                x=graf.return_X(node1)
+                y=graf.return_Y(node1)
+                x1=graf.return_X(node2)
+                y1=graf.return_Y(node2)
+                if x==x1:
+                    x+=1
+                if y==y1:
+                    y+=1
+                if self.wage_var.get()==1:
+                    z=30
+                    ymid=(y+y1)/2
+                    xmid=(x+x1)/2
+                    a1=-(x-x1)/(y-y1)
+                    b1=ymid-xmid*a1
+                    VarA=float((1+a1**2))
+                    VarB=float(((-2)*xmid+2*a1*b1-2*a1*ymid))
+                    VarC=float((xmid**2)+(b1**2)-2*b1*ymid+(ymid**2)-(z**2))
+                    DELTA=float(VarB**2-4*VarA*VarC)
+                    X_wynik1=float((-VarB+sqrt(DELTA))/(2*VarA))
+                    X_wynik2=float((-VarB-sqrt(DELTA))/(2*VarA))
+                    Y_wynik1=a1*X_wynik1+b1
+                    Y_wynik2=a1*X_wynik2+b1
+                    if Y_wynik1<Y_wynik2:
+                        Y_wynik2=Y_wynik1
+                        X_wynik2=X_wynik1
+                self.czasowe.add(str(node1)+str(node2))
+                if str(node2)+str(node1) in self.czasowe:
+                    self.c.create_text(X_wynik2-22,Y_wynik2+20,fill="black",font="Times 10 bold", text=(str(self.actual_capacity[str(node1)+str(node2)]),"!"))
+                else:
+                    self.c.create_text(X_wynik2-22,Y_wynik2,fill="black",font="Times 10 bold", text=(str(self.actual_capacity[str(node1)+str(node2)]),"/"))
 
 
 

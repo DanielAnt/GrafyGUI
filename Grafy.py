@@ -90,6 +90,7 @@ class Graf:
             if node1!=node2:
                 del self.edge_quantity[node2+node1]
             self.convert_to_adj_list()
+        self.refresh_node_pointers()
 
     def add_edge_undirected(self, node_1, node_2, wage=1):
         node1=str(node_1)
@@ -137,6 +138,16 @@ class Graf:
         temp_quantity=self.edge_quantity[temp]
         temp_quantity+=1
         self.edge_quantity[temp]=temp_quantity
+
+    def refresh_node_pointers(self):
+        self.convert_to_adj_list()
+        self.node_pointers={}
+        for node in self.adj_list:
+            for node1 in self.adj_list[node]:
+                if node1 not in self.node_pointers:
+                    self.node_pointers[node1]=set()
+                self.node_pointers[node1].add(node)
+
 
 ########### For creaing graph from adj matrix ##############
 
