@@ -2245,7 +2245,6 @@ class main:
                     if node in graf.node_pointers:
                         for node1 in graf.node_pointers[node]:
                             if node1 not in visited_nodes:
-                                print(node1)
                                 visited[node1]==True
                                 visited_nodes_withwage.add(node1)
                                 self.node_wage[node1]=0
@@ -2357,15 +2356,32 @@ class main:
 
         self.node_critical_path_edges={}
         self.split={}
+        self.avaiable_node_path={}
         self.avaiable_path={}
-        self.avaiable_path["1"]=set()
+        self.counter=0
+
         for node in self.under_node:
             if self.under_node[node]==0:
                 self.node_critical_path_edges[node]=set()
                 self.split[node]=False
 
-        self.find_critical_per_node(self.critical_last_node,1,self.avaiable_path)
-        #print(self.avaiable_path)
+        path=[]
+        visited=self.createVisited()
+
+        self.find_critical_for_node(s,self.critical_last_node,visited,path)
+
+        for path in self.avaiable_node_path:
+            first=True
+            self.avaiable_path[path]=set()
+            for node in self.avaiable_node_path[path]:
+                if first==True:
+                    previous_node=node
+                    first=False
+                    continue
+                self.avaiable_path[path].add(str(node)+str(previous_node))
+                previous_node=node
+
+
         #print(self.node_critical_path_edges)
         #print(self.split)
 
@@ -2388,20 +2404,34 @@ class main:
 
 
     # KRAWĘDZIE KRYTYCZNE PROWADZĄCE OD KAŻDEGO WIERZCHOŁKA
-    def find_critical_per_node(self,node,counter,path):
-        i=0
+
+    def find_critical_for_node(self,start,end,visited,path):
+
+        visited[end]=True
+        path.append(end)
+        if end not in graf.node_pointers:
+            if path:
+                self.counter+=1
+                self.avaiable_node_path[str(self.counter)]=[]
+                for node in path:
+                    self.avaiable_node_path[str(self.counter)].append(node)
+        else:
+            for node in graf.node_pointers[end]:
+                if visited[node]==False and self.edge_wage_extra[str(node)+str(end)]==0:
+                    self.find_critical_for_node(start,node,visited,path)
+
+        path.pop()
+        visited[end]=False
+
+
+    ############# KRYTYCZNE EDGE ##########################
+    def find_critical_per_node(self,node):
         if node in graf.node_pointers:
             for previous_node in graf.node_pointers[node]:
                 if self.edge_wage_extra[str(previous_node)+str(node)]==0:
-                    i+=1
-                    if i>1:
-                        counter+=1
-                        self.avaiable_path[str(counter)]=set()
-                        self.avaiable_path[str(counter)].update(self.node_critical_path_edges[node])
                     self.node_critical_path_edges[previous_node].update(self.node_critical_path_edges[node])
                     self.node_critical_path_edges[previous_node].add(str(previous_node)+str(node))
-                    self.avaiable_path[str(counter)].add(str(previous_node)+str(node))
-                    self.find_critical_per_node(previous_node,counter,self.avaiable_path)
+                    self.find_critical_per_node(previous_node)
         if i>1:
             self.split[node]=True
 
@@ -2706,28 +2736,28 @@ class main:
 
                 current_value=self.node_wage[self.critical_last_node]
                 text_critical=""
+                krok=0
                 while current_value>max_value:
                     current_path_value=current_value
                     max_value2=current_path_value-1
+                    krok+=1
                     while current_path_value>max_value2:
                         value_diffrence=current_path_value-max_value2
-                        #if len(self.avaiable_path)>1:
                         lowest_gradient={}
                         edge_with_lowest_gradient={}
                         time_diffrence={}
                         chosen_edges_list=set()
                         maks_edge=None
+                        print("\r\n")
                         print("aktualne wartosci")
                         print(current_value)
                         print(max_value)
                         print("dostepne scieżki")
                         print(self.avaiable_path)
-                        print("edge with minimum")
-                        print(self.unshortable_edges)
                         for path in self.avaiable_path:
                             for edge in self.avaiable_path[path]:
                                 if path not in lowest_gradient:
-                                    if self.calc_critical_time_gr[edge]<self.calc_wage_editor[edge] and edge not in self.unshortable_edges:
+                                    if self.calc_critical_time_gr[edge]<self.calc_wage_editor[edge]:
                                         lowest_gradient[path]=self.critical_gradient[edge]
                                         edge_with_lowest_gradient[path]=edge
                                         time_diffrence[path]=int(self.calc_wage_editor[edge_with_lowest_gradient[path]])-int(self.calc_critical_time_gr[edge_with_lowest_gradient[path]])
@@ -2748,7 +2778,7 @@ class main:
 
 
                         if len(chosen_edges_list)>1:
-
+                            """
                             for path in self.avaiable_path:
                                 if chosen_edges_list.issubset(self.avaiable_path[path]):
                                     print("jest subsetem")
@@ -2767,7 +2797,7 @@ class main:
                                 #text_critical+='Czynnosc '+str(edge_with_lowest_gradient)+'skrócono o '+str(time_diffrence)
                                 self.critical_optmethod_sum+=1*float(self.critical_gradient[maks_edge])
                                 break
-
+                            """
                             minimal_edge=None
                             if len(self.avaiable_path)==2:
                                 common_edges=self.avaiable_path["1"] & self.avaiable_path["2"]
@@ -2811,27 +2841,37 @@ class main:
                                 for edge in common_edges:
                                     if min_value>self.critical_gradient[edge] and self.calc_critical_time_gr[edge]<self.calc_wage_editor[edge]:
                                         minimal_edge=edge
+                            gradient_sum=0
+                            for edge in chosen_edges_list:
+                                gradient_sum+=self.critical_gradient[edge]
 
+                            if minimal_edge!=None:
+                                if gradient_sum<self.critical_gradient[minimal_edge]:
+                                    minimal_edge=None
 
 
                             ############ Gdy maja wspolna sciezke i jest najlepsza #####################
 
                             if minimal_edge!=None:
-                                print("wspolny edge")
+                                print("Common Edge")
                                 time_diffrence=self.calc_wage_editor[minimal_edge]-self.calc_critical_time_gr[minimal_edge]
                                 if time_diffrence<=value_diffrence:
                                     current_path_value-=time_diffrence
                                     self.calc_wage_editor[minimal_edge]-=time_diffrence
+                                    text_critical+='Krok {}\r\n'.format(krok)
                                     text_critical+='Czynnosc {} skrócono o {} \r\n'.format(minimal_edge,time_diffrence)
-                                    print('Czynnosc {} skrócono o {} \r\n'.format(minimal_edge,time_diffrence))
+                                    print('Krok {}'.format(krok))
+                                    print('Czynnosc {} skrócono o {}'.format(minimal_edge,time_diffrence))
                                     #text_critical+='Czynnosc '+str(edge_with_lowest_gradient)+'skrócono o '+str(time_diffrence)
                                     self.critical_optmethod_sum+=time_diffrence*float(self.critical_gradient[minimal_edge])
 
                                 elif time_diffrence>value_diffrence:
                                     current_path_value-=value_diffrence
                                     self.calc_wage_editor[minimal_edge]-=value_diffrence
+                                    text_critical+='Krok {}\r\n'.format(krok)
                                     text_critical+='Czynnosc {} skrócono o {} \r\n'.format(minimal_edge,value_diffrence)
-                                    print('Czynnosc {} skrócono o {} \r\n'.format(minimal_edge,value_diffrence))
+                                    print('Krok {}'.format(krok))
+                                    print('Czynnosc {} skrócono o {}'.format(minimal_edge,value_diffrence))
                                     #text_critical+='Czynnosc '+str(edge_with_lowest_gradient)+' skrócono o '+str(value_diffrence)
                                     self.critical_optmethod_sum+=value_diffrence*float(self.critical_gradient[minimal_edge])
 
@@ -2839,17 +2879,37 @@ class main:
 
                             ############## Gdy nie maja wspolnej ścieżki ###########################
                             else:
-                                print("kilka na raz")
-                                print(self.avaiable_path)
+                                print("Few edges at once")
 
                                 if 1<=value_diffrence:
                                     current_path_value-=1
-                                    for path in self.avaiable_path:
-                                        self.calc_wage_editor[edge_with_lowest_gradient[path]]-=1
-                                        text_critical+='Czynnosc {} skrócono o {} \r\n'.format(edge_with_lowest_gradient[path],1)
-                                        print('Czynnosc {} skrócono o {} \r\n'.format(edge_with_lowest_gradient[path],1))
+                                    #for path in self.avaiable_path:
+                                    for edge in chosen_edges_list:
+                                        #self.calc_wage_editor[edge_with_lowest_gradient[path]]-=1
+                                        self.calc_wage_editor[edge]-=1
+
+                                    for edge in self.calc_wage_editor:
+                                        graf.change_wage_directed(edge,self.calc_wage_editor[edge])
+                                    self.critical_path()
+
+                                    fixed_edge_list=[]
+                                    for edge in chosen_edges_list:
+                                        if self.edge_wage_extra[edge]>0:
+                                            continue
+                                        else:
+                                            fixed_edge_list.append(edge)
+
+                                    for edge in chosen_edges_list:
+                                        self.calc_wage_editor[edge]+=1
+
+                                    text_critical+='Krok {}\r\n'.format(krok)
+                                    print('Krok {}'.format(krok))
+                                    for edge in fixed_edge_list:
+                                        self.calc_wage_editor[edge]-=1
+                                        text_critical+='Czynnosc {} skrócono o {} \r\n'.format(edge,1)
+                                        print('Czynnosc {} skrócono o {}'.format(edge,1))
                                         #text_critical+='Czynnosc '+str(edge_with_lowest_gradient)+'skrócono o '+str(time_diffrence)
-                                        self.critical_optmethod_sum+=1*float(self.critical_gradient[edge_with_lowest_gradient[path]])
+                                        self.critical_optmethod_sum+=1*float(self.critical_gradient[edge])
 
                         #        elif time_diffrence>value_diffrence:
 
@@ -2863,12 +2923,14 @@ class main:
 
                         ################ Gdy wspolna scieżka ma najmniejszy gradient ######################
                         else:
-                            print("Jedna ścieżka")
+                            print("Common edge with lowest gradient")
                             if 1<=value_diffrence:
                                 current_path_value-=1
                                 self.calc_wage_editor[edge_with_lowest_gradient['1']]-=1
+                                text_critical+='Krok {}\r\n'.format(krok)
                                 text_critical+='Czynnosc {} skrócono o {} \r\n'.format(edge_with_lowest_gradient['1'],1)
-                                print('Czynnosc {} skrócono o {} \r\n'.format(edge_with_lowest_gradient['1'],1))
+                                print('Krok {}'.format(krok))
+                                print('Czynnosc {} skrócono o {}'.format(edge_with_lowest_gradient['1'],1))
                                 #text_critical+='Czynnosc '+str(edge_with_lowest_gradient)+'skrócono o '+str(time_diffrence)
                                 self.critical_optmethod_sum+=1*float(self.critical_gradient[edge_with_lowest_gradient['1']])
 
@@ -2959,21 +3021,20 @@ class main:
                         graf.change_wage_directed(edge,self.calc_wage_editor[edge])
                     self.critical_path()
                     self.draw_time_gr()
-                    for node in graf.adj_list:
-                        for node1 in graf.adj_list[node]:
-                            if graf.edge_wage[str(node)+str(node1)]==self.edges_minimum[str(node)+str(node1)] and str(node)+str(node1) not in self.unshortable_edges:
-                                for node2 in graf.adj_list[node]:
-                                    self.unshortable_edges.add(str(node)+str(node2))
+                    #for node in graf.adj_list:
+                    #    for node1 in graf.adj_list[node]:
+                    #        if graf.edge_wage[str(node)+str(node1)]==self.edges_minimum[str(node)+str(node1)] and str(node)+str(node1) not in self.unshortable_edges:
+                    #            for node2 in graf.adj_list[node]:
+                    #                self.unshortable_edges.add(str(node)+str(node2))
 
                     current_value=self.node_wage[self.critical_last_node]
-                    print("something")
-                    wait = input("PRESS ENTER TO CONTINUE.")
-                    print("something")
 
+                print("-------------------------------")
                 print(text_critical)
-                #print(self.critical_boundrymethod_sum)
-                print("Koszt redukcji \r\n")
+                print("Koszt redukcji")
                 print(self.critical_optmethod_sum)
+                print("Koszt redukcji graniczej")
+                print(self.critical_boundrymethod_sum)
 
             else:
                 messagebox.showerror("Error", "Czas jest nie osiągalny")
